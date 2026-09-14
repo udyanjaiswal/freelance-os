@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}{{ client.business_name }} — Client Profile{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-2 border-bottom">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <h1 class="display-6 fw-normal mb-0">{{ client.business_name }}</h1>
+            <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                <i class="bi bi-check-circle me-1"></i> Active Client
+            </span>
+        </div>
+        <p class="text-muted mb-0 small">
+            {% if client.name and client.name != client.business_name %}
+                Contact: <strong>{{ client.name }}</strong> ·
+            {% endif %}
+            Client record created on {{ client.created_at|date:"d M Y" }}
+        </p>
+    </div>
+
+    <div class="d-flex align-items-center gap-2">
+        <a href="{% url 'client_list' %}" class="btn btn-outline-subtle btn-sm">
+            <i class="bi bi-arrow-left me-1"></i> All Clients
+        </a>
+        <a href="{% url 'project_create' client.id %}" class="btn btn-brand btn-sm d-inline-flex align-items-center gap-1">
+            <i class="bi bi-folder-plus"></i> New Project
+        </a>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Client Info Card -->
+    <div class="col-lg-4">
+        <div class="custom-card p-4 h-100">
+            <h6 class="fw-semibold text-dark mb-3 pb-2 border-bottom">Client Details</h6>
+
+            <div class="mb-3">
+                <small class="text-muted small text-uppercase fw-semibold d-block mb-1">Business Name</small>
+                <div class="fw-semibold text-dark">{{ client.business_name }}</div>
+            </div>
+
+            {% if client.name %}
+            <div class="mb-3">
+                <small class="text-muted small text-uppercase fw-semibold d-block mb-1">Contact Person</small>
+                <div class="text-dark">{{ client.name }}</div>
+            </div>
+            {% endif %}
+
+            <div class="mb-3">
+                <small class="text-muted small text-uppercase fw-semibold d-block mb-1">Phone</small>
+                <div>
+                    {% if client.phone %}
+                        <a href="tel:{{ client.phone }}" class="text-decoration-none fw-semibold text-dark">
+                            <i class="bi bi-telephone text-muted me-1"></i>{{ client.phone }}
+                        </a>
+                    {% else %}
+                        <span class="text-muted small">Not specified</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <small class="text-muted small text-uppercase fw-semibold d-block mb-1">Email</small>
+                <div>
+                    {% if client.email %}
+                        <a href="mailto:{{ client.email }}" class="text-decoration-none text-dark small">
+                            <i class="bi bi-envelope text-muted me-1"></i>{{ client.email }}
+                        </a>
+                    {% else %}
+                        <span class="text-muted small">Not specified</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if client.lead %}
+            <div class="mb-3 pt-2 border-top">
+                <small class="text-muted small text-uppercase fw-semibold d-block mb-1">Origin Lead</small>
+                <a href="{% url 'lead_detail' client.lead.id %}" class="small text-decoration-none text-dark">
+                    <i class="bi bi-link-45deg me-1"></i> View Original Lead Record
+                </a>
+            </div>
+            {% endif %}
+
+            {% if client.notes %}
+            <div class="pt-2 border-top">
+                <small class="text-muted small text-uppercase fw-semibold d-block mb-1">Client Notes</small>
+                <div class="small text-muted bg-light p-2 rounded border" style="white-space: pre-wrap;">{{ client.notes }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Projects Section -->
+    <div class="col-lg-8">
+        <div class="custom-card overflow-hidden h-100">
+            <div class="card-header-clean d-flex align-items-center justify-content-between">
+                <div>
+                    <h5 class="fw-semibold text-dark mb-0">Active Projects & Deliverables</h5>
+                    <small class="text-muted">Milestones, agreed pricing, and infrastructure tracking.</small>
+                </div>
+                <a href="{% url 'project_create' client.id %}" class="btn btn-sm btn-outline-subtle">
+                    <i class="bi bi-plus-lg me-1"></i> Add Project
+                </a>
+            </div>
+
+            <div class="p-0">
+                {% if projects %}
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Project & Service</th>
+                                <th>Status</th>
+                                <th>Price</th>
+                                <th>Paid</th>
+                                <th>Balance</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for project in projects %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'project_detail' project.id %}" class="text-decoration-none fw-semibold text-dark d-block">
+                                        {{ project.project_name }}
+                                    </a>
+                                    <small class="text-muted">{{ project.service }}</small>
+                                </td>
+
+                                <td>
+                                    {% if project.status == "planning" %}
+                                        <span class="status-pill pill-low">Planning</span>
+                                    {% elif project.status == "in_progress" %}
+                                        <span class="status-pill pill-blue">In Progress</span>
+                                    {% elif project.status == "review" %}
+                                        <span class="status-pill pill-medium">Review</span>
+                                    {% elif project.status == "completed" %}
+                                        <span class="status-pill pill-success">Completed</span>
+                                    {% elif project.status == "on_hold" %}
+                                        <span class="status-pill pill-low">On Hold</span>
+                                    {% elif project.status == "cancelled" %}
+                                        <span class="status-pill pill-high">Cancelled</span>
+                                    {% else %}
+                                        <span class="status-pill pill-low">{{ project.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    <span class="fw-semibold text-dark">₹{{ project.price }}</span>
+                                </td>
+
+                                <td>
+                                    <span class="text-muted">₹{{ project.amount_paid }}</span>
+                                </td>
+
+                                <td>
+                                    {% if project.balance > 0 %}
+                                        <span class="text-danger fw-semibold">₹{{ project.balance }}</span>
+                                    {% else %}
+                                        <span class="text-success small fw-semibold">Paid in full</span>
+                                    {% endif %}
+                                </td>
+
+                                <td class="text-end">
+                                    <a href="{% url 'project_detail' project.id %}" class="btn btn-sm btn-outline-subtle py-1 px-2">
+                                        View Project <i class="bi bi-arrow-right ms-1"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% else %}
+                <div class="text-center py-5">
+                    <div class="text-muted mb-2"><i class="bi bi-folder2 fs-1 opacity-50"></i></div>
+                    <h6 class="fw-semibold mb-1">No projects created yet</h6>
+                    <p class="text-muted small mb-3">Add your first project to track deliverables, prices, and hosting renewals.</p>
+                    <a href="{% url 'project_create' client.id %}" class="btn btn-brand btn-sm">
+                        <i class="bi bi-folder-plus me-1"></i> Create First Project
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

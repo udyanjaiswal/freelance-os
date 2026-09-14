@@ -1,0 +1,193 @@
+from django.shortcuts import get_object_or_404, redirect, render
+
+from leads.models import Lead
+
+from .models import Campaign, CampaignLead
+
+from .message_generator import generate_message
+
+
+def campaign_list(request):
+    campaigns = Campaign.objects.all().order_by("-created_at")
+
+    return render(
+        request,
+        "outreach/campaign_list.html",
+        {
+            "campaigns": campaigns,
+        },
+    )
+
+
+def campaign_create(request):
+
+    if request.method == "POST":
+
+        name = request.POST.get("name", "").strip()
+        offer = request.POST.get("offer", "").strip()
+        channel = request.POST.get("channel")
+
+        potential = request.POST.get("potential")
+        city = request.POST.get("city", "").strip()
+        category = request.POST.get("category", "").strip()
+        website = request.POST.get("website")
+        status = request.POST.get("status")
+
+        campaign = Campaign.objects.create(
+            name=name,
+            offer=offer,
+            channel=channel,
+            status="draft",
+            created_by=request.user
+            if request.user.is_authenticated
+            else None,
+        )
+
+        # -------------------------
+        # FIND TARGET LEADS
+        # -------------------------
+
+        leads = Lead.objects.all()
+
+        if potential and potential != "all":
+            leads = leads.filter(
+                potential=potential
+            )
+
+        if city:
+            leads = leads.filter(
+                city__icontains=city
+            )
+
+        if category:
+            leads = leads.filter(
+                category__icontains=category
+            )
+
+        if status and status != "all":
+            leads = leads.filter(
+                status=status
+            )
+
+        # Website targeting
+        if website == "no_website":
+
+            leads = leads.filter(
+                website=""
+            )
+
+        elif website == "map_only":
+
+            leads = [
+                lead
+                for lead in leads
+                if lead.website
+                and (
+                    "google.com" in lead.website
+                    or "goo.gl" in lead.website
+                    or "maps.app.goo.gl" in lead.website
+                )
+            ]
+
+        elif website == "has_website":
+
+            leads = [
+                lead
+                for lead in leads
+                if lead.website
+                and not (
+                    "google.com" in lead.website
+                    or "goo.gl" in lead.website
+                    or "maps.app.goo.gl" in lead.website
+                )
+            ]
+
+        # -------------------------
+        # CREATE CAMPAIGN LEADS
+        # -------------------------
+
+        for lead in leads:
+
+            CampaignLead.objects.get_or_create(
+                campaign=campaign,
+                lead=lead,
+                defaults={
+                    "channel": channel,
+                },
+            )
+
+        return redirect(
+            "campaign_detail",
+            campaign_id=campaign.id,
+        )
+
+    return render(
+        request,
+        "outreach/campaign_create.html",
+        {
+            "status_choices": Lead.STATUS_CHOICES,
+        },
+    )
+
+
+def campaign_detail(request, campaign_id):
+
+    campaign = get_object_or_404(
+        Campaign,
+        id=campaign_id,
+    )
+
+    campaign_leads = (
+        campaign.campaign_leads
+        .select_related("lead")
+        .order_by("-lead__score")
+    )
+
+    return render(
+        request,
+        "outreach/campaign_detail.html",
+        {
+            "campaign": campaign,
+            "campaign_leads": campaign_leads,
+        },
+    )
+
+def generate_campaign_messages(request, campaign_id):
+
+    campaign = get_object_or_404(
+        Campaign,
+        id=campaign_id,
+    )
+
+    campaign_leads = campaign.campaign_leads.all()
+
+    for campaign_lead in campaign_leads:
+
+        if not campaign_lead.message:
+
+            campaign_lead.message = generate_message(
+                campaign_lead
+            )
+
+            campaign_lead.status = "ready"
+
+            campaign_lead.save(
+                update_fields=[
+                    "message",
+                    "status",
+                    "updated_at",
+                ]
+            )
+
+    campaign.status = "ready"
+    campaign.save(
+        update_fields=[
+            "status",
+            "updated_at",
+        ]
+    )
+
+    return redirect(
+        "campaign_detail",
+        campaign_id=campaign.id,
+    )

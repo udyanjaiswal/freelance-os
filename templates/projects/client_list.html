@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Clients & Projects — Freelancer OS{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-2 border-bottom">
+    <div>
+        <h1 class="display-6 fw-normal mb-1">Client Accounts</h1>
+        <p class="text-muted mb-0">Manage converted clients, active deliverables, and recurring hosting/domain services.</p>
+    </div>
+
+    <a href="/" class="btn btn-outline-subtle btn-sm">
+        <i class="bi bi-person-plus me-1"></i> Convert Leads from Pipeline
+    </a>
+</div>
+
+{% if clients %}
+<div class="custom-card overflow-hidden">
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead>
+                <tr>
+                    <th style="min-width: 220px;">Client / Business</th>
+                    <th>Contact Info</th>
+                    <th class="text-center">Active Projects</th>
+                    <th>Added On</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for client in clients %}
+                <tr>
+                    <td>
+                        <a href="{% url 'client_detail' client.id %}" class="text-decoration-none fw-semibold text-dark d-block">
+                            {{ client.business_name }}
+                        </a>
+                        {% if client.name and client.name != client.business_name %}
+                            <small class="text-muted"><i class="bi bi-person me-1"></i>{{ client.name }}</small>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if client.phone %}
+                        <a href="tel:{{ client.phone }}" class="text-decoration-none small text-dark d-block">
+                            <i class="bi bi-telephone text-muted me-1"></i>{{ client.phone }}
+                        </a>
+                        {% endif %}
+                        {% if client.email %}
+                        <a href="mailto:{{ client.email }}" class="text-decoration-none small text-muted d-block">
+                            <i class="bi bi-envelope text-muted me-1"></i>{{ client.email }}
+                        </a>
+                        {% endif %}
+                        {% if not client.phone and not client.email %}
+                        <span class="text-muted small">—</span>
+                        {% endif %}
+                    </td>
+
+                    <td class="text-center">
+                        <span class="badge bg-light text-dark border px-2 py-1">
+                            <i class="bi bi-folder text-muted me-1"></i> {{ client.projects.count }}
+                        </span>
+                    </td>
+
+                    <td>
+                        <span class="small text-muted">{{ client.created_at|date:"d M Y" }}</span>
+                    </td>
+
+                    <td class="text-end">
+                        <a href="{% url 'client_detail' client.id %}" class="btn btn-sm btn-outline-subtle py-1 px-2">
+                            View Client <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% else %}
+<div class="custom-card text-center py-5">
+    <div class="text-muted mb-3">
+        <i class="bi bi-people fs-1 text-secondary opacity-50"></i>
+    </div>
+    <h5 class="fw-semibold mb-1">No active clients yet</h5>
+    <p class="text-muted small mb-3">
+        Clients are automatically created when you convert qualified prospects from your leads pipeline.
+    </p>
+    <a href="/" class="btn btn-brand btn-sm">
+        <i class="bi bi-arrow-left me-1"></i> Open Leads Pipeline
+    </a>
+</div>
+{% endif %}
+
+{% endblock %}

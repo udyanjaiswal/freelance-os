@@ -1,0 +1,347 @@
+{% extends "base.html" %}
+
+{% block title %}{{ lead.business_name }} — Lead Details{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-2 border-bottom">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <h1 class="display-6 fw-normal mb-0">{{ lead.business_name }}</h1>
+            {% if lead.status == "converted" %}
+                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                    <i class="bi bi-check-circle me-1"></i> Converted Client
+                </span>
+            {% endif %}
+        </div>
+        <p class="text-muted mb-0 small">
+            <span class="badge bg-light text-dark border">{{ lead.category|default:"General Prospect" }}</span>
+            {% if lead.city %}
+                <span class="ms-2"><i class="bi bi-geo-alt text-danger me-1"></i>{{ lead.city }}</span>
+            {% endif %}
+            <span class="ms-2 text-muted">· Discovered on {{ lead.created_at|date:"d M Y" }}</span>
+        </p>
+    </div>
+
+    <div class="d-flex align-items-center gap-2">
+        <a href="/" class="btn btn-outline-subtle btn-sm">
+            <i class="bi bi-arrow-left me-1"></i> Back to Leads
+        </a>
+        {% if lead.status == "converted" and lead.client %}
+            <a href="{% url 'client_detail' lead.client.id %}" class="btn btn-brand btn-sm">
+                <i class="bi bi-folder2-open me-1"></i> View Client Profile
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-4">
+
+    <!-- Left Column: Score & Conversion -->
+    <div class="col-lg-4">
+        
+        <!-- Score Card -->
+        <div class="custom-card p-4 mb-4">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="small fw-semibold text-muted text-uppercase">Lead Score</span>
+                {% if lead.potential == "high" %}
+                    <span class="status-pill pill-high">🔥 High Potential</span>
+                {% elif lead.potential == "medium" %}
+                    <span class="status-pill pill-medium">🟡 Medium</span>
+                {% else %}
+                    <span class="status-pill pill-low">⚪ Low</span>
+                {% endif %}
+            </div>
+
+            <div class="d-flex align-items-baseline gap-2 my-2">
+                <span class="display-4 fw-bold text-dark">{{ score }}</span>
+                <span class="text-muted small">/ 100</span>
+            </div>
+
+            <hr class="my-3">
+
+            <div>
+                <h6 class="fw-semibold text-dark small mb-2">Score Factors & Signals</h6>
+                <div class="list-group list-group-flush small">
+                    {% for item in breakdown %}
+                    <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-start bg-transparent border-0">
+                        <div class="me-2">
+                            <div class="fw-medium text-dark">{{ item.factor }}</div>
+                            <div class="text-muted small">{{ item.result }}</div>
+                        </div>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle fw-semibold">
+                            +{{ item.points }}
+                        </span>
+                    </div>
+                    {% empty %}
+                    <div class="text-muted small py-2">Baseline criteria applied.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Client Conversion Panel -->
+        <div class="custom-card p-4 mb-4" style="border-left: 3px solid {% if lead.status == 'converted' %}var(--accent-green){% else %}var(--brand-terracotta){% endif %};">
+            <h6 class="fw-semibold text-dark mb-2 d-flex align-items-center gap-2">
+                <i class="bi bi-person-check {% if lead.status == 'converted' %}text-success{% else %}text-muted{% endif %}"></i>
+                Client Relationship
+            </h6>
+
+            {% if lead.status != "converted" %}
+                <p class="text-muted small mb-3">
+                    Ready to work together? Convert this lead into a client to manage active projects, deliverables, milestones, and payments.
+                </p>
+                <form method="post" action="{% url 'convert_lead_to_client' lead.id %}" onsubmit="return confirm('Convert {{ lead.business_name|escapejs }} to a client?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-brand w-100 btn-sm fw-semibold d-inline-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-person-plus"></i> Convert to Client
+                    </button>
+                </form>
+            {% else %}
+                <p class="text-muted small mb-3">
+                    This lead is an active client in your client roster.
+                </p>
+                {% if lead.client %}
+                <a href="{% url 'client_detail' lead.client.id %}" class="btn btn-outline-subtle w-100 btn-sm d-inline-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-folder2-open"></i> Open Client Profile
+                </a>
+                {% endif %}
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- Right Column: Details, Status, Notes, Outreach Log -->
+    <div class="col-lg-8">
+
+        <!-- Business Details Sheet -->
+        <div class="custom-card p-4 mb-4">
+            <div class="d-flex align-items-center justify-content-between pb-3 mb-3 border-bottom">
+                <h5 class="fw-semibold text-dark mb-0">Contact & Business Information</h5>
+                <span class="badge bg-light text-dark border">{{ lead.get_status_display }}</span>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-sm-6">
+                    <small class="text-muted small text-uppercase fw-semibold d-block mb-1">Business Name</small>
+                    <div class="fw-semibold text-dark">{{ lead.business_name|default:"—" }}</div>
+                </div>
+
+                <div class="col-sm-6">
+                    <small class="text-muted small text-uppercase fw-semibold d-block mb-1">Category</small>
+                    <div class="text-dark">{{ lead.category|default:"—" }}</div>
+                </div>
+
+                <div class="col-sm-6">
+                    <small class="text-muted small text-uppercase fw-semibold d-block mb-1">City / Location</small>
+                    <div class="text-dark">{{ lead.city|default:"—" }}</div>
+                </div>
+
+                <div class="col-sm-6">
+                    <small class="text-muted small text-uppercase fw-semibold d-block mb-1">Phone Number</small>
+                    <div>
+                        {% if lead.phone %}
+                            <a href="tel:{{ lead.phone }}" class="text-decoration-none fw-semibold text-dark">
+                                <i class="bi bi-telephone text-muted me-1"></i>{{ lead.phone }}
+                            </a>
+                        {% else %}
+                            <span class="text-muted small">Not available</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-sm-6">
+                    <small class="text-muted small text-uppercase fw-semibold d-block mb-1">Email Address</small>
+                    <div>
+                        {% if lead.email %}
+                            <a href="mailto:{{ lead.email }}" class="text-decoration-none text-dark small">
+                                <i class="bi bi-envelope text-muted me-1"></i>{{ lead.email }}
+                            </a>
+                        {% else %}
+                            <span class="text-muted small">Not available</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-sm-6">
+                    <small class="text-muted small text-uppercase fw-semibold d-block mb-1">Website</small>
+                    <div>
+                        {% if lead.website %}
+                            <a href="{{ lead.website }}" target="_blank" rel="noopener" class="text-decoration-none text-dark text-truncate d-inline-block small" style="max-width: 250px;">
+                                <i class="bi bi-globe me-1 text-muted"></i>{{ lead.website }}
+                            </a>
+                        {% else %}
+                            <span class="text-muted small">No website listed</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <small class="text-muted small text-uppercase fw-semibold d-block mb-1">Physical Address</small>
+                    <div class="text-dark small">{{ lead.address|default:"—" }}</div>
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- Pipeline Status Selector Form -->
+            <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 p-3 bg-light rounded border">
+                <div>
+                    <div class="small fw-semibold text-muted text-uppercase mb-1">Current Pipeline Stage</div>
+                    <div>
+                        {% if lead.status == "new" %}
+                            <span class="status-pill pill-low">New</span>
+                        {% elif lead.status == "contacted" %}
+                            <span class="status-pill pill-blue">Contacted</span>
+                        {% elif lead.status == "interested" %}
+                            <span class="status-pill pill-success">Interested</span>
+                        {% elif lead.status == "follow_up" %}
+                            <span class="status-pill pill-medium">Follow-up</span>
+                        {% elif lead.status == "converted" %}
+                            <span class="status-pill pill-success fw-bold">Converted</span>
+                        {% elif lead.status == "not_interested" %}
+                            <span class="status-pill pill-high">Not Interested</span>
+                        {% elif lead.status == "lost" %}
+                            <span class="status-pill pill-low">Lost</span>
+                        {% else %}
+                            <span class="status-pill pill-low">{{ lead.get_status_display }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <form method="POST" action="{% url 'update_status' lead.id %}" class="d-flex gap-2 align-items-center">
+                    {% csrf_token %}
+                    <select name="status" class="form-select form-select-sm" style="min-width: 170px;">
+                        {% for value, label in lead.STATUS_CHOICES %}
+                            <option value="{{ value }}" {% if lead.status == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-brand text-nowrap">
+                        Update Status
+                    </button>
+                </form>
+            </div>
+
+            <hr class="my-4">
+
+            <!-- Notes Section -->
+            <div>
+                <h6 class="fw-semibold text-dark small mb-2">Private Notes</h6>
+                <form method="POST">
+                    {% csrf_token %}
+                    <textarea
+                        name="notes"
+                        class="form-control mb-2"
+                        rows="3"
+                        placeholder="Add notes about your conversations, requirements, or price quotes..."
+                    >{{ lead.notes }}</textarea>
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-sm btn-outline-subtle">
+                            <i class="bi bi-save me-1"></i> Save Notes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Outreach Activity & Call Sheet -->
+        <div class="custom-card p-4 mb-4">
+            <div class="d-flex align-items-center justify-content-between pb-3 mb-3 border-bottom">
+                <h5 class="fw-semibold text-dark mb-0 d-flex align-items-center gap-2">
+                    <i class="bi bi-chat-dots text-muted"></i> Outreach & Contact History
+                </h5>
+                <span class="badge bg-light text-dark border">{{ outreach_records|length }} logged</span>
+            </div>
+
+            <!-- Log Outreach Form -->
+            <form method="POST" action="{% url 'add_outreach' lead.id %}" class="p-3 bg-light rounded mb-4 border">
+                {% csrf_token %}
+
+                <div class="fw-semibold text-dark small mb-3">Record New Outreach Activity</div>
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold text-muted">Channel</label>
+                        <select name="method" class="form-select form-select-sm" required>
+                            <option value="call">📞 Phone Call</option>
+                            <option value="whatsapp">💬 WhatsApp</option>
+                            <option value="email">✉️ Email</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold text-muted">Follow-up Date</label>
+                        <input type="date" name="follow_up_date" class="form-control form-control-sm">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold text-muted">Outcome / Response</label>
+                        <input type="text" name="outcome" class="form-control form-control-sm" placeholder="e.g. Sent pitch, Call back Friday">
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold text-muted">Notes / Message</label>
+                        <textarea name="message" class="form-control form-control-sm" rows="2" placeholder="Summary of what was discussed..."></textarea>
+                    </div>
+
+                    <div class="col-12 d-flex justify-content-end">
+                        <button type="submit" class="btn btn-sm btn-brand">
+                            <i class="bi bi-plus-circle me-1"></i> Save Activity
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Activity List -->
+            {% if outreach_records %}
+            <div class="small fw-semibold text-muted text-uppercase mb-3">Previous Interactions</div>
+
+            <div class="list-group list-group-flush">
+                {% for record in outreach_records %}
+                <div class="list-group-item px-0 py-3 bg-transparent border-bottom">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <div>
+                            {% if record.method == "call" %}
+                                <span class="badge bg-light text-dark border me-1"><i class="bi bi-telephone me-1"></i>Call</span>
+                            {% elif record.method == "whatsapp" %}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle me-1"><i class="bi bi-whatsapp me-1"></i>WhatsApp</span>
+                            {% else %}
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle me-1"><i class="bi bi-envelope me-1"></i>Email</span>
+                            {% endif %}
+
+                            {% if record.outcome %}
+                                <span class="fw-semibold text-dark small ms-1">{{ record.outcome }}</span>
+                            {% endif %}
+                        </div>
+                        <span class="text-muted small">{{ record.created_at|date:"d M Y, H:i" }}</span>
+                    </div>
+
+                    {% if record.message %}
+                    <div class="p-2 bg-light rounded border text-dark small mt-2" style="white-space: pre-wrap; font-size: 0.85rem;">
+                        {{ record.message }}
+                    </div>
+                    {% endif %}
+
+                    {% if record.follow_up_date %}
+                    <div class="small text-muted mt-2">
+                        <i class="bi bi-calendar-event text-warning me-1"></i> Next follow-up: <strong>{{ record.follow_up_date|date:"d M Y" }}</strong>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-4 text-muted small">
+                <i class="bi bi-clock-history fs-3 d-block mb-1 opacity-50"></i>
+                No outreach activities logged yet. Record your initial contact above.
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

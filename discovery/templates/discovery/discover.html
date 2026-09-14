@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+
+{% block title %}Find Leads — Freelancer OS{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4 pb-2">
+    <div>
+        <h1 class="display-6 fw-normal mb-1">Find Local Businesses</h1>
+        <p class="text-muted mb-0">
+            Search for local businesses in any city to discover potential clients who need websites, redesigns, or digital services.
+        </p>
+    </div>
+    <a href="/" class="btn btn-outline-subtle btn-sm">
+        <i class="bi bi-arrow-left me-1"></i> Back to Leads
+    </a>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Left: Simple Search Form -->
+    <div class="col-lg-7">
+        <div class="custom-card p-4">
+            <h5 class="fw-semibold text-dark mb-3">Search Parameters</h5>
+
+            <form method="POST" id="discovery-form" novalidate>
+                {% csrf_token %}
+
+                <!-- Hidden search input for backend contract ("${category} in ${city}") -->
+                <input type="hidden" id="search" name="search" value="{{ search }}">
+
+                <div class="mb-3">
+                    <label for="category-input" class="form-label small fw-semibold text-dark">
+                        Business Category or Service <span class="text-danger">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="category-input"
+                        placeholder="e.g. Salons, Dentists, Bakeries, Fitness Gyms"
+                        required
+                    >
+                    <div class="form-text text-muted small">The type of local businesses you want to target.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="city-input" class="form-label small fw-semibold text-dark">
+                        City or Locality <span class="text-danger">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="city-input"
+                        placeholder="e.g. Lucknow, Delhi, Hazratganj, Mumbai"
+                        required
+                    >
+                    <div class="form-text text-muted small">The geographic location to search within.</div>
+                </div>
+
+                <!-- Quick Presets -->
+                <div class="mb-3">
+                    <span class="small text-muted d-block mb-1">Popular searches:</span>
+                    <div class="d-flex flex-wrap gap-1">
+                        <button type="button" class="btn btn-sm btn-outline-subtle py-1 px-2 small suggestion-chip" data-category="Salons" data-city="Lucknow">
+                            Salons in Lucknow
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-subtle py-1 px-2 small suggestion-chip" data-category="Dentists" data-city="Delhi">
+                            Dentists in Delhi
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-subtle py-1 px-2 small suggestion-chip" data-category="Gyms" data-city="Mumbai">
+                            Gyms in Mumbai
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-subtle py-1 px-2 small suggestion-chip" data-category="Cafes" data-city="Bangalore">
+                            Cafes in Bangalore
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row g-2 align-items-end pt-2 border-top">
+                    <div class="col-sm-5">
+                        <label for="limit" class="form-label small fw-semibold text-dark">Max Results</label>
+                        <input
+                            type="number"
+                            class="form-control"
+                            id="limit"
+                            name="limit"
+                            value="100"
+                            min="1"
+                            max="500"
+                            step="10"
+                        >
+                    </div>
+                    <div class="col-sm-7">
+                        <button
+                            type="submit"
+                            class="btn btn-brand w-100"
+                            id="discover-button"
+                        >
+                            <i class="bi bi-search me-1" id="button-icon"></i>
+                            <span id="button-text">Find Businesses</span>
+                            <span
+                                id="button-spinner"
+                                class="spinner-border spinner-border-sm ms-2 d-none"
+                                role="status"
+                                aria-hidden="true"
+                            ></span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Friendly Loading Notice -->
+            <div id="loading-section" class="d-none mt-3 p-3 bg-light rounded border">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="spinner-border text-dark" role="status" style="width: 1.75rem; height: 1.75rem;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <div>
+                        <div class="fw-semibold text-dark mb-1">Searching for businesses...</div>
+                        <div class="text-muted small">
+                            Querying OpenStreetMap and Foursquare places, merging duplicates, and scoring website opportunities. This takes about 5–10 seconds.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Validation Error Notice -->
+            <div id="validation-error" class="alert alert-warning d-none mt-3 mb-0 small" role="alert">
+                <i class="bi bi-exclamation-circle me-1"></i> Please provide both a <strong>business category</strong> and a <strong>city</strong>.
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: How Scoring Works -->
+    <div class="col-lg-5">
+        <div class="custom-card p-4">
+            <h5 class="fw-semibold text-dark mb-2">How It Works</h5>
+            <p class="text-muted small mb-3">
+                Freelancer OS gathers live business listings and automatically identifies the best prospects for your freelance services.
+            </p>
+
+            <div class="list-group list-group-flush small mb-3">
+                <div class="list-group-item px-0 py-2 bg-transparent border-0">
+                    <div class="fw-semibold text-dark"><i class="bi bi-geo-alt text-danger me-1"></i> 1. Location Gathering</div>
+                    <div class="text-muted">Extracts businesses with names, addresses, phones, and websites.</div>
+                </div>
+                <div class="list-group-item px-0 py-2 bg-transparent border-0">
+                    <div class="fw-semibold text-dark"><i class="bi bi-shield-check text-success me-1"></i> 2. Automatic Deduplication</div>
+                    <div class="text-muted">Prevents duplicate entries by matching existing phone numbers and addresses.</div>
+                </div>
+                <div class="list-group-item px-0 py-2 bg-transparent border-0">
+                    <div class="fw-semibold text-dark"><i class="bi bi-lightning text-warning me-1"></i> 3. Opportunity Scoring</div>
+                    <div class="text-muted">High scores are awarded to businesses missing a website or with incomplete digital presence.</div>
+                </div>
+            </div>
+
+            <div class="p-3 bg-light rounded border small">
+                <div class="fw-semibold text-dark mb-1">Scoring Breakdown:</div>
+                <div class="text-success mb-1">• <strong>+25 pts:</strong> No website listed (ideal web design prospect)</div>
+                <div class="text-muted mb-1">• <strong>+15 pts:</strong> Map or directory profile only</div>
+                <div class="text-muted">• <strong>+10 pts:</strong> Verified phone number for outreach</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Results Summary -->
+{% if result %}
+    <div class="custom-card p-4 mb-4" style="border-left: 4px solid var(--accent-green);">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 pb-3 mb-3 border-bottom">
+            <div>
+                <span class="badge bg-success-subtle text-success border border-success-subtle mb-1">Search Completed</span>
+                <h4 class="fw-bold mb-0 text-dark">Results for "{{ search }}"</h4>
+            </div>
+            <a href="/" class="btn btn-brand btn-sm">
+                View All Leads in Pipeline →
+            </a>
+        </div>
+
+        <div class="row g-3 text-center my-1">
+            <div class="col-4">
+                <div class="p-3 bg-light rounded border">
+                    <span class="text-muted small text-uppercase d-block mb-1">Total Found</span>
+                    <span class="fs-2 fw-bold text-dark">{{ result.found }}</span>
+                    <span class="d-block text-muted small">businesses</span>
+                </div>
+            </div>
+
+            <div class="col-4">
+                <div class="p-3 rounded border" style="background-color: #f0fdf4; border-color: #bbf7d0 !important;">
+                    <span class="text-success small text-uppercase d-block mb-1">New Leads Saved</span>
+                    <span class="fs-2 fw-bold text-success">+{{ result.new }}</span>
+                    <span class="d-block text-success small">added to pipeline</span>
+                </div>
+            </div>
+
+            <div class="col-4">
+                <div class="p-3 bg-light rounded border">
+                    <span class="text-muted small text-uppercase d-block mb-1">Duplicates Merged</span>
+                    <span class="fs-2 fw-bold text-secondary">{{ result.duplicates }}</span>
+                    <span class="d-block text-muted small">updated</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 mt-4 pt-2 border-top">
+            <a href="{% url 'campaign_create' %}" class="btn btn-sm btn-outline-subtle">
+                <i class="bi bi-send me-1"></i> Create Outreach Campaign
+            </a>
+            <a href="/" class="btn btn-sm btn-brand">
+                Open Leads Pipeline
+            </a>
+        </div>
+    </div>
+{% elif request.method == "POST" %}
+    <div class="alert alert-warning small" role="alert">
+        <i class="bi bi-info-circle me-1"></i> No results found for this search. Please check the spelling or try a broader category (e.g. "salons in Lucknow").
+    </div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("discovery-form");
+    const categoryInput = document.getElementById("category-input");
+    const cityInput = document.getElementById("city-input");
+    const searchHidden = document.getElementById("search");
+    const button = document.getElementById("discover-button");
+    const buttonText = document.getElementById("button-text");
+    const buttonIcon = document.getElementById("button-icon");
+    const buttonSpinner = document.getElementById("button-spinner");
+    const loadingSection = document.getElementById("loading-section");
+    const validationError = document.getElementById("validation-error");
+    const chips = document.querySelectorAll(".suggestion-chip");
+
+    // Initialize category and city if search value exists
+    const initialSearch = (searchHidden.value || "").trim();
+    if (initialSearch && initialSearch.toLowerCase().includes(" in ")) {
+        const lastIdx = initialSearch.toLowerCase().lastIndexOf(" in ");
+        categoryInput.value = initialSearch.substring(0, lastIdx).trim();
+        cityInput.value = initialSearch.substring(lastIdx + 4).trim();
+    } else if (initialSearch) {
+        categoryInput.value = initialSearch;
+    }
+
+    function syncSearch() {
+        const cat = categoryInput.value.trim();
+        const city = cityInput.value.trim();
+        if (cat && city) {
+            searchHidden.value = cat + " in " + city;
+        } else if (cat) {
+            searchHidden.value = cat;
+        } else {
+            searchHidden.value = "";
+        }
+    }
+
+    categoryInput.addEventListener("input", syncSearch);
+    cityInput.addEventListener("input", syncSearch);
+
+    chips.forEach(function (chip) {
+        chip.addEventListener("click", function () {
+            categoryInput.value = this.getAttribute("data-category");
+            cityInput.value = this.getAttribute("data-city");
+            syncSearch();
+            validationError.classList.add("d-none");
+            categoryInput.focus();
+        });
+    });
+
+    form.addEventListener("submit", function (e) {
+        syncSearch();
+        const cat = categoryInput.value.trim();
+        const city = cityInput.value.trim();
+
+        if (!cat || !city) {
+            e.preventDefault();
+            validationError.classList.remove("d-none");
+            if (!cat) categoryInput.focus();
+            else cityInput.focus();
+            return false;
+        }
+
+        validationError.classList.add("d-none");
+
+        button.disabled = true;
+        buttonText.textContent = "Searching...";
+        if (buttonIcon) buttonIcon.classList.add("d-none");
+        buttonSpinner.classList.remove("d-none");
+        loadingSection.classList.remove("d-none");
+
+        loadingSection.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+});
+</script>
+{% endblock %}

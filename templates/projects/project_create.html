@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Create Project for {{ client.business_name }} — Freelancer OS{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-2 border-bottom">
+    <div>
+        <h1 class="display-6 fw-normal mb-1">New Client Project</h1>
+        <p class="text-muted mb-0">
+            Assigning to client: <strong class="text-dark">{{ client.business_name }}</strong>
+        </p>
+    </div>
+
+    <a href="{% url 'client_detail' client.id %}" class="btn btn-outline-subtle btn-sm">
+        <i class="bi bi-arrow-left me-1"></i> Back to Client
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="custom-card p-4 p-md-5">
+            <form method="post" id="project-create-form">
+                {% csrf_token %}
+
+                <!-- Group 1: Project Overview -->
+                <h5 class="fw-semibold text-dark mb-3">Project Overview</h5>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-dark">Project Name <span class="text-danger">*</span></label>
+                        <input
+                            type="text"
+                            name="project_name"
+                            class="form-control"
+                            placeholder="e.g. Website Redesign & SEO"
+                            required
+                        >
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-dark">Service Type <span class="text-danger">*</span></label>
+                        <input
+                            type="text"
+                            name="service"
+                            class="form-control"
+                            placeholder="e.g. Web Development, Google Ads, Branding"
+                            required
+                        >
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-dark">Initial Status</label>
+                        <select name="status" class="form-select">
+                            {% for value, label in status_choices %}
+                                <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <!-- Group 2: Schedule & Timeline -->
+                <h5 class="fw-semibold text-dark mb-3">Schedule & Timeline</h5>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-dark">Start Date</label>
+                        <input type="date" name="start_date" class="form-control">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-dark">Target Deadline</label>
+                        <input type="date" name="deadline" class="form-control">
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <!-- Group 3: Financials & Payments -->
+                <h5 class="fw-semibold text-dark mb-3">Pricing & Payment Details</h5>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-dark">Total Agreed Price (₹)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light">₹</span>
+                            <input
+                                type="number"
+                                step="0.01"
+                                name="price"
+                                class="form-control"
+                                placeholder="0.00"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold text-dark">Initial Amount Paid (₹)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light">₹</span>
+                            <input
+                                type="number"
+                                step="0.01"
+                                name="amount_paid"
+                                class="form-control"
+                                placeholder="0.00"
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <!-- Group 4: Hosting & Infrastructure -->
+                <h5 class="fw-semibold text-dark mb-3">Domain & Hosting (Optional)</h5>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold text-dark">Domain Name</label>
+                        <input type="text" name="domain_name" class="form-control" placeholder="e.g. clientbusiness.com">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold text-dark">Domain Provider</label>
+                        <input type="text" name="domain_provider" class="form-control" placeholder="e.g. Namecheap, GoDaddy">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold text-dark">Domain Renewal Date</label>
+                        <input type="date" name="domain_renewal_date" class="form-control">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold text-dark">Hosting Provider</label>
+                        <input type="text" name="hosting_provider" class="form-control" placeholder="e.g. Hostinger, DigitalOcean">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold text-dark">Hosting Plan</label>
+                        <input type="text" name="hosting_plan" class="form-control" placeholder="e.g. Premium Cloud, Starter VPS">
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold text-dark">Hosting Renewal Date</label>
+                        <input type="date" name="hosting_renewal_date" class="form-control">
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <!-- Group 5: Notes -->
+                <div class="mb-4">
+                    <label class="form-label small fw-semibold text-dark">Project Notes</label>
+                    <textarea
+                        name="notes"
+                        class="form-control"
+                        rows="3"
+                        placeholder="Add requirements, milestones, client preferences, or deliverable links..."
+                    ></textarea>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                    <a href="{% url 'client_detail' client.id %}" class="btn btn-outline-subtle">
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn btn-brand px-4">
+                        <i class="bi bi-check2 me-1"></i> Save Project
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

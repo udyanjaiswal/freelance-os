@@ -69,6 +69,7 @@ class CampaignLead(models.Model):
         ("follow_up", "Follow-up"),
         ("not_interested", "Not Interested"),
         ("converted", "Converted"),
+        ("failed", "Failed"),
     ]
 
     campaign = models.ForeignKey(

@@ -3,10 +3,11 @@ from google import genai
 from scoring.engine import get_score_breakdown
 
 
-client = genai.Client()
-
 
 def generate_message(campaign_lead):
+
+    client = genai.Client()
+    
     lead = campaign_lead.lead
     campaign = campaign_lead.campaign
 

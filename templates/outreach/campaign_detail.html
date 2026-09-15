@@ -179,6 +179,11 @@
                                         <span class="status-pill pill-medium">Replied</span>
                                     {% elif item.status == "interested" %}
                                         <span class="status-pill pill-success">Interested</span>
+
+                                    {% elif campaign_lead.status == "failed" %}
+    <span class="badge badge-subtle-danger">
+        Failed
+    </span>    
                                     {% else %}
                                         <span class="status-pill pill-low">{{ item.get_status_display }}</span>
                                     {% endif %}

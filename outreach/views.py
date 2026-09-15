@@ -5,6 +5,7 @@ from leads.models import Lead
 from .models import Campaign, CampaignLead
 
 from .message_generator import generate_message
+from django.contrib import messages
 
 
 def campaign_list(request):
@@ -153,22 +154,21 @@ def campaign_detail(request, campaign_id):
     )
 
 def generate_campaign_messages(request, campaign_id):
-
-    campaign = get_object_or_404(
-        Campaign,
-        id=campaign_id,
-    )
+    campaign = get_object_or_404(Campaign, id=campaign_id)
 
     campaign_leads = campaign.campaign_leads.all()
 
+    success_count = 0
+    failed_count = 0
+
     for campaign_lead in campaign_leads:
 
-        if not campaign_lead.message:
+        # Don't regenerate messages that already exist
+        if campaign_lead.message:
+            continue
 
-            campaign_lead.message = generate_message(
-                campaign_lead
-            )
-
+        try:
+            campaign_lead.message = generate_message(campaign_lead)
             campaign_lead.status = "ready"
 
             campaign_lead.save(
@@ -179,13 +179,55 @@ def generate_campaign_messages(request, campaign_id):
                 ]
             )
 
-    campaign.status = "ready"
+            success_count += 1
+
+        except Exception as error:
+            print(
+                f"Gemini generation failed for "
+                f"{campaign_lead.lead.business_name}: {error}"
+            )
+
+            campaign_lead.status = "failed"
+
+            campaign_lead.save(
+                update_fields=[
+                    "status",
+                    "updated_at",
+                ]
+            )
+
+            failed_count += 1
+
+    # Campaign is ready if at least one message was generated.
+    if success_count > 0:
+        campaign.status = "ready"
+
     campaign.save(
         update_fields=[
             "status",
             "updated_at",
         ]
     )
+
+    if failed_count > 0:
+        messages.warning(
+            request,
+            f"{success_count} message(s) generated successfully. "
+            f"{failed_count} message(s) failed because Gemini was "
+            f"temporarily unavailable. You can retry them later."
+        )
+
+    elif success_count > 0:
+        messages.success(
+            request,
+            f"{success_count} message(s) generated successfully."
+        )
+
+    else:
+        messages.info(
+            request,
+            "No new messages needed to be generated."
+        )
 
     return redirect(
         "campaign_detail",

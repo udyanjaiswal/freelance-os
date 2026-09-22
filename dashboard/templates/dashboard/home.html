@@ -1,647 +1,533 @@
-{% extends "base.html" %}
-
-{% block title %}Leads — Freelancer OS{% endblock %}
-
+{% extends "base.html" %} {% block title %}Leads — Freelancer OS{% endblock %}
 {% block content %}
 
 <!-- Header & Quick Actions -->
-<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-2">
-    <div>
-        <h1 class="display-6 fw-normal mb-1">Leads & Prospects</h1>
-        <p class="text-muted mb-0">
-            Browse, filter, and review potential clients discovered for your freelance business.
-        </p>
-    </div>
+<div
+  class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-2"
+>
+  <div>
+    <h1 class="display-6 fw-normal mb-1">Leads & Prospects</h1>
+    <p class="text-muted mb-0">
+      Browse, filter, and review potential clients discovered for your freelance
+      business.
+    </p>
+  </div>
 
-    <div class="d-flex align-items-center gap-2">
-        <a href="/discover/" class="btn btn-brand d-inline-flex align-items-center gap-2">
-            <i class="bi bi-search"></i>
-            Find New Leads
-        </a>
+  <div class="d-flex flex-wrap align-items-center gap-2">
+    <!-- Import Leads Button -->
+    <form
+      method="POST"
+      action="{% url 'import_leads' %}"
+      enctype="multipart/form-data"
+      class="m-0"
+      id="importLeadsForm"
+    >
+      {% csrf_token %}
 
-        <a href="{% url 'campaign_create' %}" class="btn btn-outline-subtle d-inline-flex align-items-center gap-2">
-            <i class="bi bi-send"></i>
-            New Campaign
-        </a>
-    </div>
+      <input
+        type="file"
+        name="csv_file"
+        id="leadsFileInput"
+        accept=".csv,.xlsx"
+        hidden
+        required
+        onchange="if (this.files.length) this.form.submit();"
+      />
+
+      <button
+        type="button"
+        class="btn btn-dark d-inline-flex align-items-center gap-2"
+        onclick="document.getElementById('leadsFileInput').click()"
+      >
+        <i class="bi bi-upload"></i>
+        Import CSV
+      </button>
+    </form>
+    <a
+      href="{% url 'export_leads' %}"
+      class="btn btn-light border-dark d-inline-flex align-items-center gap-2"
+    >
+      <i class="bi bi-download"></i>
+      Export CSV
+    </a>
+    <a
+      href="/discover/"
+      class="btn btn-brand d-inline-flex align-items-center gap-2"
+    >
+      <i class="bi bi-search"></i>
+      Find New Leads
+    </a>
+
+    <a
+      href="{% url 'campaign_create' %}"
+      class="btn btn-outline-subtle d-inline-flex align-items-center gap-2"
+    >
+      <i class="bi bi-send"></i>
+      New Campaign
+    </a>
+  </div>
 </div>
-
 
 <!-- Overview Stats Grid -->
 <div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3">
+    <a href="/" class="text-decoration-none">
+      <div
+        class="custom-card p-3 h-100 d-flex flex-column justify-content-between"
+      >
+        <span class="text-muted small">Total Leads</span>
 
-    <div class="col-6 col-lg-3">
-        <a href="/" class="text-decoration-none">
-            <div class="custom-card p-3 h-100 d-flex flex-column justify-content-between">
-                <span class="text-muted small">Total Leads</span>
+        <div class="d-flex align-items-baseline justify-content-between mt-2">
+          <span class="fs-3 fw-bold text-dark"> {{ total_leads }} </span>
+          <span class="text-muted small"> in database </span>
+        </div>
+      </div>
+    </a>
+  </div>
 
-                <div class="d-flex align-items-baseline justify-content-between mt-2">
-                    <span class="fs-3 fw-bold text-dark">
-                        {{ total_leads }}
-                    </span>
-                    <span class="text-muted small">
-                        in database
-                    </span>
-                </div>
-            </div>
-        </a>
-    </div>
+  <div class="col-6 col-lg-3">
+    <a
+      href="/?potential=high{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+      class="text-decoration-none"
+    >
+      <div
+        class="custom-card p-3 h-100 d-flex flex-column justify-content-between"
+        style="border-left: 3px solid #dc2626"
+      >
+        <span class="text-danger small fw-semibold"> High Potential </span>
 
+        <div class="d-flex align-items-baseline justify-content-between mt-2">
+          <span class="fs-3 fw-bold text-danger"> {{ high_leads }} </span>
 
-    <div class="col-6 col-lg-3">
-        <a href="/?potential=high{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
-           class="text-decoration-none">
+          <span
+            class="badge bg-danger-subtle text-danger border border-danger-subtle small"
+          >
+            Priority
+          </span>
+        </div>
+      </div>
+    </a>
+  </div>
 
-            <div class="custom-card p-3 h-100 d-flex flex-column justify-content-between"
-                 style="border-left: 3px solid #dc2626;">
+  <div class="col-6 col-lg-3">
+    <a
+      href="/?potential=medium{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+      class="text-decoration-none"
+    >
+      <div
+        class="custom-card p-3 h-100 d-flex flex-column justify-content-between"
+        style="border-left: 3px solid #d97706"
+      >
+        <span class="text-warning small fw-semibold text-dark">
+          Medium Potential
+        </span>
 
-                <span class="text-danger small fw-semibold">
-                    High Potential
-                </span>
+        <div class="d-flex align-items-baseline justify-content-between mt-2">
+          <span class="fs-3 fw-bold text-dark"> {{ medium_leads }} </span>
 
-                <div class="d-flex align-items-baseline justify-content-between mt-2">
-                    <span class="fs-3 fw-bold text-danger">
-                        {{ high_leads }}
-                    </span>
+          <span class="text-muted small"> qualifying </span>
+        </div>
+      </div>
+    </a>
+  </div>
 
-                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle small">
-                        Priority
-                    </span>
-                </div>
-            </div>
-        </a>
-    </div>
+  <div class="col-6 col-lg-3">
+    <a
+      href="/?potential=low{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+      class="text-decoration-none"
+    >
+      <div
+        class="custom-card p-3 h-100 d-flex flex-column justify-content-between"
+      >
+        <span class="text-muted small"> Low Potential </span>
 
+        <div class="d-flex align-items-baseline justify-content-between mt-2">
+          <span class="fs-3 fw-bold text-muted"> {{ low_leads }} </span>
 
-    <div class="col-6 col-lg-3">
-        <a href="/?potential=medium{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
-           class="text-decoration-none">
-
-            <div class="custom-card p-3 h-100 d-flex flex-column justify-content-between"
-                 style="border-left: 3px solid #d97706;">
-
-                <span class="text-warning small fw-semibold text-dark">
-                    Medium Potential
-                </span>
-
-                <div class="d-flex align-items-baseline justify-content-between mt-2">
-                    <span class="fs-3 fw-bold text-dark">
-                        {{ medium_leads }}
-                    </span>
-
-                    <span class="text-muted small">
-                        qualifying
-                    </span>
-                </div>
-            </div>
-        </a>
-    </div>
-
-
-    <div class="col-6 col-lg-3">
-        <a href="/?potential=low{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
-           class="text-decoration-none">
-
-            <div class="custom-card p-3 h-100 d-flex flex-column justify-content-between">
-
-                <span class="text-muted small">
-                    Low Potential
-                </span>
-
-                <div class="d-flex align-items-baseline justify-content-between mt-2">
-                    <span class="fs-3 fw-bold text-muted">
-                        {{ low_leads }}
-                    </span>
-
-                    <span class="text-muted small">
-                        baseline
-                    </span>
-                </div>
-            </div>
-        </a>
-    </div>
-
+          <span class="text-muted small"> baseline </span>
+        </div>
+      </div>
+    </a>
+  </div>
 </div>
 
 <!-- Follow-ups -->
 <div class="custom-card mt-4">
+  <div class="p-3 border-bottom">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h5 class="mb-1">
+          <i class="bi bi-calendar-check me-2"></i>
+          Follow-ups
+        </h5>
 
-    <div class="p-3 border-bottom">
+        <p class="text-muted small mb-0">Leads that need your attention.</p>
+      </div>
 
-        <div class="d-flex justify-content-between align-items-center">
+      <span class="badge bg-light text-dark border">
+        {{ manual_follow_ups|length|add:campaign_follow_ups|length }}
+      </span>
+    </div>
+  </div>
 
-            <div>
-                <h5 class="mb-1">
-                    <i class="bi bi-calendar-check me-2"></i>
-                    Follow-ups
-                </h5>
+  <!-- Manual Outreach Follow-ups -->
+  {% for item in manual_follow_ups %}
 
-                <p class="text-muted small mb-0">
-                    Leads that need your attention.
-                </p>
-            </div>
+  <div class="px-3">
+    <div
+      class="d-flex justify-content-between align-items-center py-3 border-bottom"
+    >
+      <div>
+        <a
+          href="{% url 'lead_detail' item.lead.id %}"
+          class="fw-semibold text-decoration-none text-dark"
+        >
+          {{ item.lead.business_name }}
+        </a>
 
-            <span class="badge bg-light text-dark border">
-                {{ manual_follow_ups|length|add:campaign_follow_ups|length }}
-            </span>
+        <div class="small text-muted mt-1">
+          Manual {{ item.method|title }} outreach
+        </div>
+      </div>
 
+      <div class="text-end ms-3">
+        {% if item.follow_up_date < today %}
+
+        <span class="status-pill pill-high"> Overdue </span>
+
+        <div class="small text-muted mt-1">
+          {{ item.follow_up_date|date:"d M" }}
         </div>
 
+        {% elif item.follow_up_date == today %}
+
+        <span class="status-pill pill-medium"> Today </span>
+
+        {% else %}
+
+        <span class="status-pill pill-blue">
+          {{ item.follow_up_date|date:"d M" }}
+        </span>
+
+        {% endif %}
+      </div>
     </div>
+  </div>
 
+  {% endfor %}
 
-    <!-- Manual Outreach Follow-ups -->
-    {% for item in manual_follow_ups %}
+  <!-- Campaign Follow-ups -->
+  {% for item in campaign_follow_ups %}
 
-    <div class="px-3">
+  <div class="px-3">
+    <div
+      class="d-flex justify-content-between align-items-center py-3 border-bottom"
+    >
+      <div>
+        <a
+          href="{% url 'lead_detail' item.lead.id %}"
+          class="fw-semibold text-decoration-none text-dark"
+        >
+          {{ item.lead.business_name }}
+        </a>
 
-        <div class="d-flex justify-content-between align-items-center py-3 border-bottom">
+        <div class="small text-muted mt-1">{{ item.campaign.name }}</div>
+      </div>
 
-            <div>
+      <div class="text-end ms-3">
+        {% if item.follow_up_date < today %}
 
-                <a
-                    href="{% url 'lead_detail' item.lead.id %}"
-                    class="fw-semibold text-decoration-none text-dark"
-                >
-                    {{ item.lead.business_name }}
-                </a>
+        <span class="status-pill pill-high"> Overdue </span>
 
-                <div class="small text-muted mt-1">
-                    Manual {{ item.method|title }} outreach
-                </div>
-
-            </div>
-
-
-            <div class="text-end ms-3">
-
-                {% if item.follow_up_date < today %}
-
-                    <span class="status-pill pill-high">
-                        Overdue
-                    </span>
-
-                    <div class="small text-muted mt-1">
-                        {{ item.follow_up_date|date:"d M" }}
-                    </div>
-
-                {% elif item.follow_up_date == today %}
-
-                    <span class="status-pill pill-medium">
-                        Today
-                    </span>
-
-                {% else %}
-
-                    <span class="status-pill pill-blue">
-                        {{ item.follow_up_date|date:"d M" }}
-                    </span>
-
-                {% endif %}
-
-            </div>
-
+        <div class="small text-muted mt-1">
+          {{ item.follow_up_date|date:"d M" }}
         </div>
 
+        {% elif item.follow_up_date == today %}
+
+        <span class="status-pill pill-medium"> Today </span>
+
+        {% else %}
+
+        <span class="status-pill pill-blue">
+          {{ item.follow_up_date|date:"d M" }}
+        </span>
+
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% endfor %} {% if not manual_follow_ups and not campaign_follow_ups %}
+
+  <div class="text-center py-5 px-3">
+    <div class="text-muted mb-2">
+      <i class="bi bi-calendar2-check fs-2 opacity-50"></i>
     </div>
 
-    {% endfor %}
+    <h6 class="fw-bold mb-1">No follow-ups scheduled</h6>
 
+    <p class="text-muted small mb-0">Scheduled follow-ups will appear here.</p>
+  </div>
 
-    <!-- Campaign Follow-ups -->
-    {% for item in campaign_follow_ups %}
-
-    <div class="px-3">
-
-        <div class="d-flex justify-content-between align-items-center py-3 border-bottom">
-
-            <div>
-
-                <a
-                    href="{% url 'lead_detail' item.lead.id %}"
-                    class="fw-semibold text-decoration-none text-dark"
-                >
-                    {{ item.lead.business_name }}
-                </a>
-
-                <div class="small text-muted mt-1">
-                    {{ item.campaign.name }}
-                </div>
-
-            </div>
-
-
-            <div class="text-end ms-3">
-
-                {% if item.follow_up_date < today %}
-
-                    <span class="status-pill pill-high">
-                        Overdue
-                    </span>
-
-                    <div class="small text-muted mt-1">
-                        {{ item.follow_up_date|date:"d M" }}
-                    </div>
-
-                {% elif item.follow_up_date == today %}
-
-                    <span class="status-pill pill-medium">
-                        Today
-                    </span>
-
-                {% else %}
-
-                    <span class="status-pill pill-blue">
-                        {{ item.follow_up_date|date:"d M" }}
-                    </span>
-
-                {% endif %}
-
-            </div>
-
-        </div>
-
-    </div>
-
-    {% endfor %}
-
-
-    {% if not manual_follow_ups and not campaign_follow_ups %}
-
-    <div class="text-center py-5 px-3">
-
-        <div class="text-muted mb-2">
-            <i class="bi bi-calendar2-check fs-2 opacity-50"></i>
-        </div>
-
-        <h6 class="fw-bold mb-1">
-            No follow-ups scheduled
-        </h6>
-
-        <p class="text-muted small mb-0">
-            Scheduled follow-ups will appear here.
-        </p>
-
-    </div>
-
-    {% endif %}
-
+  {% endif %}
 </div>
 
 <!-- Search & Filter Strip -->
 <div class="custom-card p-3 mb-4">
+  <form method="GET" class="row g-2 align-items-center">
+    <div class="col-md-5">
+      <div class="input-group input-group-sm">
+        <span class="input-group-text bg-white border-end-0 text-muted">
+          <i class="bi bi-search"></i>
+        </span>
 
-    <form method="GET" class="row g-2 align-items-center">
+        <input
+          type="text"
+          name="search"
+          class="form-control border-start-0 ps-0"
+          placeholder="Search by business name, city, or phone..."
+          value="{{ request.GET.search }}"
+        />
+      </div>
+    </div>
 
-        <div class="col-md-5">
+    {% if request.GET.potential %}
+    <input type="hidden" name="potential" value="{{ request.GET.potential }}" />
+    {% endif %}
 
-            <div class="input-group input-group-sm">
+    <div class="col-auto">
+      <button type="submit" class="btn btn-sm btn-brand">Search</button>
+    </div>
 
-                <span class="input-group-text bg-white border-end-0 text-muted">
-                    <i class="bi bi-search"></i>
-                </span>
+    {% if request.GET.search or request.GET.potential %}
 
-                <input
-                    type="text"
-                    name="search"
-                    class="form-control border-start-0 ps-0"
-                    placeholder="Search by business name, city, or phone..."
-                    value="{{ request.GET.search }}"
-                />
+    <div class="col-auto">
+      <a href="/" class="btn btn-sm btn-outline-subtle text-muted">
+        Clear Filters
+      </a>
+    </div>
 
-            </div>
+    {% endif %}
 
-        </div>
+    <div
+      class="col-12 col-md d-flex flex-wrap justify-content-md-end gap-1 mt-2 mt-md-0 align-items-center"
+    >
+      <span class="small text-muted me-2 d-none d-lg-inline">
+        Showing {{ leads|length }} of {{ total_leads }}
+      </span>
 
+      <a
+        href="/{% if request.GET.search %}?search={{ request.GET.search }}{% endif %}"
+        class="btn btn-sm {% if not request.GET.potential %}btn-brand{% else %}btn-outline-subtle{% endif %} py-1"
+      >
+        All
+      </a>
 
-        {% if request.GET.potential %}
-            <input
-                type="hidden"
-                name="potential"
-                value="{{ request.GET.potential }}"
-            >
-        {% endif %}
+      <a
+        href="/?potential=high{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+        class="btn btn-sm {% if request.GET.potential == 'high' %}btn-brand{% else %}btn-outline-subtle{% endif %} py-1"
+      >
+        High
+      </a>
 
+      <a
+        href="/?potential=medium{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+        class="btn btn-sm {% if request.GET.potential == 'medium' %}btn-brand{% else %}btn-outline-subtle{% endif %} py-1"
+      >
+        Medium
+      </a>
 
-        <div class="col-auto">
-
-            <button type="submit" class="btn btn-sm btn-brand">
-                Search
-            </button>
-
-        </div>
-
-
-        {% if request.GET.search or request.GET.potential %}
-
-        <div class="col-auto">
-
-            <a href="/" class="btn btn-sm btn-outline-subtle text-muted">
-                Clear Filters
-            </a>
-
-        </div>
-
-        {% endif %}
-
-
-        <div class="col-12 col-md d-flex flex-wrap justify-content-md-end gap-1 mt-2 mt-md-0 align-items-center">
-
-            <span class="small text-muted me-2 d-none d-lg-inline">
-                Showing {{ leads|length }} of {{ total_leads }}
-            </span>
-
-
-            <a
-                href="/{% if request.GET.search %}?search={{ request.GET.search }}{% endif %}"
-                class="btn btn-sm {% if not request.GET.potential %}btn-brand{% else %}btn-outline-subtle{% endif %} py-1"
-            >
-                All
-            </a>
-
-
-            <a
-                href="/?potential=high{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
-                class="btn btn-sm {% if request.GET.potential == 'high' %}btn-brand{% else %}btn-outline-subtle{% endif %} py-1"
-            >
-                High
-            </a>
-
-
-            <a
-                href="/?potential=medium{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
-                class="btn btn-sm {% if request.GET.potential == 'medium' %}btn-brand{% else %}btn-outline-subtle{% endif %} py-1"
-            >
-                Medium
-            </a>
-
-
-            <a
-                href="/?potential=low{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
-                class="btn btn-sm {% if request.GET.potential == 'low' %}btn-brand{% else %}btn-outline-subtle{% endif %} py-1"
-            >
-                Low
-            </a>
-
-        </div>
-
-    </form>
-
+      <a
+        href="/?potential=low{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+        class="btn btn-sm {% if request.GET.potential == 'low' %}btn-brand{% else %}btn-outline-subtle{% endif %} py-1"
+      >
+        Low
+      </a>
+    </div>
+  </form>
 </div>
-
 
 <!-- Leads Directory Table -->
 <div class="custom-card overflow-hidden">
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+        <tr>
+          <th style="min-width: 220px">Business</th>
+          <th>Category</th>
+          <th>Location</th>
+          <th>Contact</th>
+          <th class="text-center">Score</th>
+          <th>Potential</th>
+          <th>Status</th>
+          <th class="text-end">Action</th>
+        </tr>
+      </thead>
 
-    <div class="table-responsive">
+      <tbody>
+        {% for lead in leads %}
 
-        <table class="table align-middle">
+        <tr>
+          <td>
+            <a
+              href="{% url 'lead_detail' lead.id %}"
+              class="text-decoration-none fw-semibold text-dark d-block"
+            >
+              {{ lead.business_name }}
+            </a>
 
-            <thead>
-                <tr>
-                    <th style="min-width: 220px;">Business</th>
-                    <th>Category</th>
-                    <th>Location</th>
-                    <th>Contact</th>
-                    <th class="text-center">Score</th>
-                    <th>Potential</th>
-                    <th>Status</th>
-                    <th class="text-end">Action</th>
-                </tr>
-            </thead>
+            {% if lead.address %}
 
+            <span
+              class="text-muted small text-truncate d-inline-block"
+              style="max-width: 260px"
+              title="{{ lead.address }}"
+            >
+              {{ lead.address }}
+            </span>
 
-            <tbody>
+            {% endif %}
+          </td>
 
-                {% for lead in leads %}
+          <td>
+            <span class="text-muted small">
+              {{ lead.category|default:"General" }}
+            </span>
+          </td>
 
-                <tr>
+          <td>
+            <span class="small text-dark"> {{ lead.city|default:"—" }} </span>
+          </td>
 
-                    <td>
+          <td>
+            {% if lead.phone %}
 
-                        <a
-                            href="{% url 'lead_detail' lead.id %}"
-                            class="text-decoration-none fw-semibold text-dark d-block"
-                        >
-                            {{ lead.business_name }}
-                        </a>
+            <a
+              href="tel:{{ lead.phone }}"
+              class="text-decoration-none small text-dark d-block"
+            >
+              <i class="bi bi-telephone text-muted me-1"></i>
+              {{ lead.phone }}
+            </a>
 
+            {% endif %} {% if lead.email %}
 
-                        {% if lead.address %}
+            <a
+              href="mailto:{{ lead.email }}"
+              class="text-decoration-none small text-muted d-block"
+              style="font-size: 0.8rem"
+            >
+              <i class="bi bi-envelope text-muted me-1"></i>
+              {{ lead.email }}
+            </a>
 
-                        <span
-                            class="text-muted small text-truncate d-inline-block"
-                            style="max-width: 260px;"
-                            title="{{ lead.address }}"
-                        >
-                            {{ lead.address }}
-                        </span>
+            {% endif %} {% if not lead.phone and not lead.email %}
 
-                        {% endif %}
+            <span class="text-muted small"> — </span>
 
-                    </td>
+            {% endif %}
+          </td>
 
+          <td class="text-center">
+            <span class="fw-bold px-2 py-1 bg-light border rounded small">
+              {{ lead.score }}
+            </span>
+          </td>
 
-                    <td>
+          <td>
+            {% if lead.potential == "high" %}
 
-                        <span class="text-muted small">
-                            {{ lead.category|default:"General" }}
-                        </span>
+            <span class="status-pill pill-high"> 🔥 High </span>
 
-                    </td>
+            {% elif lead.potential == "medium" %}
 
+            <span class="status-pill pill-medium"> 🟡 Medium </span>
 
-                    <td>
+            {% else %}
 
-                        <span class="small text-dark">
-                            {{ lead.city|default:"—" }}
-                        </span>
+            <span class="status-pill pill-low"> ⚪ Low </span>
 
-                    </td>
+            {% endif %}
+          </td>
 
+          <td>
+            {% if lead.status == "new" %}
 
-                    <td>
+            <span class="status-pill pill-low"> New </span>
 
-                        {% if lead.phone %}
+            {% elif lead.status == "contacted" %}
 
-                        <a
-                            href="tel:{{ lead.phone }}"
-                            class="text-decoration-none small text-dark d-block"
-                        >
-                            <i class="bi bi-telephone text-muted me-1"></i>
-                            {{ lead.phone }}
-                        </a>
+            <span class="status-pill pill-blue"> Contacted </span>
 
-                        {% endif %}
+            {% elif lead.status == "interested" %}
 
+            <span class="status-pill pill-success"> Interested </span>
 
-                        {% if lead.email %}
+            {% elif lead.status == "follow_up" %}
 
-                        <a
-                            href="mailto:{{ lead.email }}"
-                            class="text-decoration-none small text-muted d-block"
-                            style="font-size: 0.8rem;"
-                        >
-                            <i class="bi bi-envelope text-muted me-1"></i>
-                            {{ lead.email }}
-                        </a>
+            <span class="status-pill pill-medium"> Follow-up </span>
 
-                        {% endif %}
+            {% elif lead.status == "converted" %}
 
+            <span class="status-pill pill-success fw-bold">
+              <i class="bi bi-check2 me-1"></i>
+              Converted
+            </span>
 
-                        {% if not lead.phone and not lead.email %}
+            {% elif lead.status == "not_interested" %}
 
-                        <span class="text-muted small">
-                            —
-                        </span>
+            <span class="status-pill pill-high"> Not Interested </span>
 
-                        {% endif %}
+            {% elif lead.status == "lost" %}
 
-                    </td>
+            <span class="status-pill pill-low"> Lost </span>
 
+            {% else %}
 
-                    <td class="text-center">
+            <span class="status-pill pill-low">
+              {{ lead.get_status_display }}
+            </span>
 
-                        <span class="fw-bold px-2 py-1 bg-light border rounded small">
-                            {{ lead.score }}
-                        </span>
+            {% endif %}
+          </td>
 
-                    </td>
+          <td class="text-end">
+            <a
+              href="{% url 'lead_detail' lead.id %}"
+              class="btn btn-sm btn-outline-subtle py-1 px-2"
+            >
+              View
+              <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+          </td>
+        </tr>
 
+        {% empty %}
 
-                    <td>
+        <tr>
+          <td colspan="8" class="text-center py-5">
+            <div class="text-muted mb-2">
+              <i class="bi bi-inbox fs-2 opacity-50"></i>
+            </div>
 
-                        {% if lead.potential == "high" %}
+            <h6 class="fw-bold mb-1">No matching leads found</h6>
 
-                            <span class="status-pill pill-high">
-                                🔥 High
-                            </span>
+            <p class="text-muted small mb-3">
+              Try adjusting your search terms or discover new businesses.
+            </p>
 
-                        {% elif lead.potential == "medium" %}
+            <a href="/discover/" class="btn btn-brand btn-sm">
+              <i class="bi bi-search me-1"></i>
+              Find Leads
+            </a>
+          </td>
+        </tr>
 
-                            <span class="status-pill pill-medium">
-                                🟡 Medium
-                            </span>
-
-                        {% else %}
-
-                            <span class="status-pill pill-low">
-                                ⚪ Low
-                            </span>
-
-                        {% endif %}
-
-                    </td>
-
-
-                    <td>
-
-                        {% if lead.status == "new" %}
-
-                            <span class="status-pill pill-low">
-                                New
-                            </span>
-
-                        {% elif lead.status == "contacted" %}
-
-                            <span class="status-pill pill-blue">
-                                Contacted
-                            </span>
-
-                        {% elif lead.status == "interested" %}
-
-                            <span class="status-pill pill-success">
-                                Interested
-                            </span>
-
-                        {% elif lead.status == "follow_up" %}
-
-                            <span class="status-pill pill-medium">
-                                Follow-up
-                            </span>
-
-                        {% elif lead.status == "converted" %}
-
-                            <span class="status-pill pill-success fw-bold">
-                                <i class="bi bi-check2 me-1"></i>
-                                Converted
-                            </span>
-
-                        {% elif lead.status == "not_interested" %}
-
-                            <span class="status-pill pill-high">
-                                Not Interested
-                            </span>
-
-                        {% elif lead.status == "lost" %}
-
-                            <span class="status-pill pill-low">
-                                Lost
-                            </span>
-
-                        {% else %}
-
-                            <span class="status-pill pill-low">
-                                {{ lead.get_status_display }}
-                            </span>
-
-                        {% endif %}
-
-                    </td>
-
-
-                    <td class="text-end">
-
-                        <a
-                            href="{% url 'lead_detail' lead.id %}"
-                            class="btn btn-sm btn-outline-subtle py-1 px-2"
-                        >
-                            View
-                            <i class="bi bi-arrow-right ms-1"></i>
-                        </a>
-
-                    </td>
-
-                </tr>
-
-                {% empty %}
-
-                <tr>
-
-                    <td colspan="8" class="text-center py-5">
-
-                        <div class="text-muted mb-2">
-                            <i class="bi bi-inbox fs-2 opacity-50"></i>
-                        </div>
-
-                        <h6 class="fw-bold mb-1">
-                            No matching leads found
-                        </h6>
-
-                        <p class="text-muted small mb-3">
-                            Try adjusting your search terms or discover new businesses.
-                        </p>
-
-                        <a href="/discover/" class="btn btn-brand btn-sm">
-                            <i class="bi bi-search me-1"></i>
-                            Find Leads
-                        </a>
-
-                    </td>
-
-                </tr>
-
-                {% endfor %}
-
-            </tbody>
-
-        </table>
-
-    </div>
-
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
-
-
-
 
 {% endblock %}

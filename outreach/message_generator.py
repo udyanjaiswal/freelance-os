@@ -1,13 +1,16 @@
+import os
+
+from dotenv import load_dotenv
 from google import genai
+from groq import Groq
 
 from scoring.engine import get_score_breakdown
 
 
+load_dotenv()
 
-def generate_message(campaign_lead):
 
-    client = genai.Client()
-    
+def build_prompt(campaign_lead):
     lead = campaign_lead.lead
     campaign = campaign_lead.campaign
 
@@ -212,9 +215,61 @@ You can use hinglish somewhere in message to target emotionally connect and feel
 Important - Do not use hinglish in full messages in very some parts where required only.
 """
 
+    return prompt
+
+
+def generate_gemini_message(prompt):
+    client = genai.Client()
+
     response = client.models.generate_content(
         model="gemini-3.8-flash",
         contents=prompt,
     )
 
     return response.text.strip()
+
+
+def generate_groq_message(prompt):
+    client = Groq(
+        api_key=os.getenv("GROQ_API_KEY")
+    )
+
+    response = client.chat.completions.create(
+        model="qwen/qwen3.8-27b",
+        messages=[
+            {
+                "role": "user",
+                "content": prompt,
+            }
+        ],
+        temperature=0.7,
+        max_tokens=600,
+    )
+
+    content = response.choices[0].message.content
+
+    if not content:
+        raise RuntimeError("Groq returned an empty response.")
+
+    return content.strip()
+
+
+def generate_message(campaign_lead):
+    prompt = build_prompt(campaign_lead)
+
+    try:
+        return generate_gemini_message(prompt)
+
+    except Exception as gemini_error:
+        print(f"Gemini failed, trying Groq fallback: {gemini_error}")
+
+        try:
+            return generate_groq_message(prompt)
+
+        except Exception as groq_error:
+            print(f"Groq fallback failed: {groq_error}")
+
+            raise RuntimeError(
+                "AI message generation failed. "
+                "Please try again later."
+            )

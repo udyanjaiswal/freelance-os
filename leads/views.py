@@ -3,10 +3,15 @@ from django.shortcuts import get_object_or_404, redirect, render
 from .models import Lead
 from outreach.models import Outreach
 from scoring.engine import get_score_breakdown
+from django.contrib.auth.decorators import login_required
 
-
+@login_required
 def lead_detail(request, lead_id):
-    lead = get_object_or_404(Lead, id=lead_id)
+    lead = get_object_or_404(
+        Lead,
+        id=lead_id,
+        user=request.user,
+    )
 
     # Save notes
     if request.method == "POST":
@@ -38,11 +43,12 @@ def lead_detail(request, lead_id):
         },
     )
 
-
+@login_required
 def update_status(request, lead_id):
     lead = get_object_or_404(
         Lead,
-        id=lead_id
+        id=lead_id,
+        user=request.user,
     )
 
     if request.method == "POST":
@@ -70,11 +76,12 @@ def update_status(request, lead_id):
         lead_id=lead.id
     )
 
-
+@login_required
 def add_outreach(request, lead_id):
     lead = get_object_or_404(
         Lead,
-        id=lead_id
+        id=lead_id,
+        user=request.user,
     )
 
     if request.method == "POST":

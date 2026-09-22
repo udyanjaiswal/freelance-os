@@ -9,7 +9,7 @@ from scoring.enrichment import enrich_lead
 from scoring.engine import score_lead
 
 
-def discover_leads(query, city, limit=20):
+def discover_leads(query, city, limit=20 , user=None):
 
     all_results = []
 
@@ -90,13 +90,14 @@ def discover_leads(query, city, limit=20):
         # Exact provider match first
         if data.get("source_id"):
             existing = Lead.objects.filter(
+                user=user,
                 source_id=data["source_id"]
             ).first()
 
         # Cross-source database match
         if not existing:
 
-            for lead in Lead.objects.all():
+            for lead in Lead.objects.filter(user=user):
 
                 stored = normalize_lead({
                     "business_name": lead.business_name,
@@ -198,7 +199,7 @@ def discover_leads(query, city, limit=20):
         # New lead
         
 
-        lead = Lead.objects.create(**data)
+        lead = Lead.objects.create(user=user,**data)
 
         enrich_lead(lead)
         score_lead(lead)

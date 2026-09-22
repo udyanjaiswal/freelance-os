@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
 from .engine import discover_leads
 
 
@@ -26,6 +27,7 @@ def parse_search_query(search):
     return search, ""
 
 
+@login_required
 def discover(request):
 
     result = None
@@ -47,6 +49,7 @@ def discover(request):
                 query=query,
                 city=city,
                 limit=limit,
+                user=request.user,
             )
 
     return render(

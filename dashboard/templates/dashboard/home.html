@@ -71,7 +71,7 @@
 <!-- Overview Stats Grid -->
 <div class="row g-3 mb-4">
   <div class="col-6 col-lg-3">
-    <a href="/" class="text-decoration-none">
+    <a href="?" class="text-decoration-none">
       <div
         class="custom-card p-3 h-100 d-flex flex-column justify-content-between"
       >
@@ -87,7 +87,7 @@
 
   <div class="col-6 col-lg-3">
     <a
-      href="/?potential=high{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+      href="?potential=high{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
       class="text-decoration-none"
     >
       <div
@@ -111,7 +111,7 @@
 
   <div class="col-6 col-lg-3">
     <a
-      href="/?potential=medium{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+      href="?potential=medium{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
       class="text-decoration-none"
     >
       <div
@@ -133,7 +133,7 @@
 
   <div class="col-6 col-lg-3">
     <a
-      href="/?potential=low{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+      href="?potential=low{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
       class="text-decoration-none"
     >
       <div
@@ -303,7 +303,7 @@
     {% if request.GET.search or request.GET.potential %}
 
     <div class="col-auto">
-      <a href="/" class="btn btn-sm btn-outline-subtle text-muted">
+      <a href="?" class="btn btn-sm btn-outline-subtle text-muted">
         Clear Filters
       </a>
     </div>
@@ -318,28 +318,28 @@
       </span>
 
       <a
-        href="/{% if request.GET.search %}?search={{ request.GET.search }}{% endif %}"
+        href="?{% if request.GET.search %}search={{ request.GET.search }}{% endif %}"
         class="btn btn-sm {% if not request.GET.potential %}btn-brand{% else %}btn-outline-subtle{% endif %} py-1"
       >
         All
       </a>
 
       <a
-        href="/?potential=high{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+        href="?potential=high{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
         class="btn btn-sm {% if request.GET.potential == 'high' %}btn-brand{% else %}btn-outline-subtle{% endif %} py-1"
       >
         High
       </a>
 
       <a
-        href="/?potential=medium{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+        href="?potential=medium{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
         class="btn btn-sm {% if request.GET.potential == 'medium' %}btn-brand{% else %}btn-outline-subtle{% endif %} py-1"
       >
         Medium
       </a>
 
       <a
-        href="/?potential=low{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+        href="?potential=low{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
         class="btn btn-sm {% if request.GET.potential == 'low' %}btn-brand{% else %}btn-outline-subtle{% endif %} py-1"
       >
         Low

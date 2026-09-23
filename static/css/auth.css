@@ -1,0 +1,330 @@
+:root {
+    --auth-bg-page: #fbfaf7;
+    --auth-bg-card: #ffffff;
+    --auth-text-heading: #1c1917;
+    --auth-text-body: #44403c;
+    --auth-text-muted: #78716c;
+    --auth-border-warm: #e7e4dc;
+    --auth-brand: #1c1917;
+    --auth-brand-soft: #f5f4ef;
+    --auth-error: #a83b32;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--auth-bg-page);
+    color: var(--auth-text-body);
+    font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* NAVBAR */
+
+.landing-nav {
+    border-bottom: 1px solid var(--auth-border-warm);
+    background: rgba(251, 250, 247, 0.94);
+}
+
+.nav-inner {
+    max-width: 1180px;
+    margin: auto;
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--auth-text-heading);
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.brand-stamp {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--auth-brand);
+    color: #fbfaf7;
+    border-radius: 6px;
+    font-family: "Newsreader", Georgia, serif;
+    font-size: 18px;
+}
+
+.back-link {
+    color: var(--auth-text-muted);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 8px 12px;
+    border-radius: 6px;
+}
+
+.back-link:hover {
+    background: var(--auth-brand-soft);
+    color: var(--auth-text-heading);
+}
+
+/* PAGE */
+
+.page {
+    min-height: calc(100vh - 69px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 70px 24px 90px;
+}
+
+.auth-wrapper {
+    width: 100%;
+    max-width: 980px;
+    display: grid;
+    grid-template-columns: 0.9fr 1.1fr;
+    gap: 70px;
+    align-items: center;
+}
+
+/* LEFT */
+
+.intro {
+    padding-right: 20px;
+}
+
+.eyebrow {
+    display: inline-block;
+    padding: 7px 11px;
+    border: 1px solid var(--auth-border-warm);
+    border-radius: 5px;
+    background: #ffffff;
+    color: var(--auth-text-muted);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.intro h1 {
+    margin: 20px 0 16px;
+    color: var(--auth-text-heading);
+    font-family: "Newsreader", Georgia, serif;
+    font-size: clamp(48px, 6vw, 72px);
+    line-height: 0.98;
+    letter-spacing: -0.04em;
+    font-weight: 500;
+}
+
+.intro p {
+    max-width: 390px;
+    margin: 0;
+    color: var(--auth-text-muted);
+    font-size: 15px;
+    line-height: 1.75;
+}
+
+.quiet-note {
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid var(--auth-border-warm);
+    color: var(--auth-text-muted);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+/* CARD */
+
+.auth-card {
+    background: var(--auth-bg-card);
+    border: 1px solid var(--auth-border-warm);
+    border-radius: 10px;
+    padding: 38px;
+    box-shadow: 0 18px 50px rgba(28, 25, 23, 0.07);
+}
+
+.card-heading {
+    margin-bottom: 28px;
+}
+
+.card-heading h2 {
+    margin: 0 0 7px;
+    color: var(--auth-text-heading);
+    font-family: "Newsreader", Georgia, serif;
+    font-size: 34px;
+    line-height: 1.05;
+    font-weight: 500;
+}
+
+.card-heading p {
+    margin: 0;
+    color: var(--auth-text-muted);
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+/* FORM */
+
+.form-field {
+    margin-bottom: 20px;
+}
+
+.form-field label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--auth-text-heading);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.form-field input {
+    width: 100%;
+    padding: 12px 13px;
+    border: 1px solid var(--auth-border-warm);
+    border-radius: 6px;
+    background: #ffffff;
+    color: var(--auth-text-heading);
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.form-field input:focus {
+    border-color: #a8a29e;
+    box-shadow: 0 0 0 3px rgba(28, 25, 23, 0.05);
+}
+
+.error-box {
+    margin-bottom: 20px;
+    padding: 12px 14px;
+    border: 1px solid #e5c9c5;
+    border-radius: 6px;
+    background: #fff8f7;
+    color: var(--auth-error);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+/* FORGOT PASSWORD */
+
+.form-options {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: -7px;
+    margin-bottom: 22px;
+}
+
+.form-options a {
+    color: var(--auth-text-muted);
+    font-size: 11px;
+    text-decoration: none;
+}
+
+.form-options a:hover {
+    color: var(--auth-text-heading);
+    text-decoration: underline;
+}
+
+/* BUTTON */
+
+.submit-btn {
+    width: 100%;
+    padding: 12px 18px;
+    border: 0;
+    border-radius: 6px;
+    background: var(--auth-brand);
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        background 0.15s ease,
+        transform 0.15s ease;
+}
+
+.submit-btn:hover {
+    background: #2e2a27;
+    transform: translateY(-1px);
+}
+
+.submit-btn:active {
+    transform: translateY(0);
+}
+
+/* FOOTER */
+
+.auth-footer {
+    margin-top: 22px;
+    padding-top: 20px;
+    border-top: 1px solid var(--auth-border-warm);
+    text-align: center;
+    color: var(--auth-text-muted);
+    font-size: 12px;
+}
+
+.auth-footer a {
+    color: var(--auth-text-heading);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 800px) {
+    .auth-wrapper {
+        grid-template-columns: 1fr;
+        gap: 35px;
+        max-width: 560px;
+    }
+
+    .intro {
+        padding-right: 0;
+    }
+
+    .intro h1 {
+        font-size: 54px;
+    }
+
+    .quiet-note {
+        display: none;
+    }
+
+    .page {
+        padding-top: 55px;
+    }
+}
+
+@media (max-width: 520px) {
+    .nav-inner {
+        padding: 15px 18px;
+    }
+
+    .page {
+        padding: 40px 18px 60px;
+    }
+
+    .auth-card {
+        padding: 25px 22px;
+    }
+
+    .intro h1 {
+        font-size: 48px;
+    }
+
+    .card-heading h2 {
+        font-size: 30px;
+    }
+}

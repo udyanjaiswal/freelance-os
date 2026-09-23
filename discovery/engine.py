@@ -1,4 +1,3 @@
-
 from leads.models import Lead
 
 from discovery.sources.osm import search_osm
@@ -9,9 +8,12 @@ from discovery.dedupe import find_match, merge_leads
 from scoring.enrichment import enrich_lead
 from scoring.engine import score_lead
 
-def discover_leads(query, city, limit=20):
+
+def discover_leads(query, city, limit=20, user=None):
+
     all_results = []
 
+    # OSM
     try:
         osm_results = search_osm(query, city, limit)
     except Exception as error:
@@ -20,9 +22,12 @@ def discover_leads(query, city, limit=20):
 
     all_results.extend(osm_results)
 
+    # Foursquare
     try:
         foursquare_results = search_foursquare(
-            query, city, limit
+            query,
+            city,
+            limit
         )
     except Exception as error:
         print(f"Foursquare unavailable: {error}")
@@ -30,28 +35,52 @@ def discover_leads(query, city, limit=20):
 
     all_results.extend(foursquare_results)
 
+    print(f"Total raw results: {len(all_results)}")
+
+    # Merge provider results
     unique_results = []
 
     for data in all_results:
+
         data = normalize_lead(data)
+
         match = find_match(unique_results, data)
 
         if match:
             merge_leads(match, data)
 
-            sources = set(match.get("source", "").split(","))
-            sources.add(data.get("source", ""))
-            match["source"] = ",".join(
-                source for source in sources if source
+            sources = set(
+                match.get("source", "").split(",")
             )
+
+            sources.add(
+                data.get("source", "")
+            )
+
+            match["source"] = ",".join(
+                source
+                for source in sources
+                if source
+            )
+
         else:
             unique_results.append(data)
+
+    print(
+        f"Unique results after provider deduplication: "
+        f"{len(unique_results)}"
+    )
 
     new_count = 0
     duplicate_count = 0
 
+    # Save results
     for data in unique_results:
-        _, is_new = save_lead_data(data)
+
+        _, is_new = save_lead_data(
+            data,
+            user=user
+        )
 
         if is_new:
             new_count += 1
@@ -64,7 +93,9 @@ def discover_leads(query, city, limit=20):
         "duplicates": duplicate_count,
     }
 
-def save_lead_data(data):
+
+def save_lead_data(data, user=None):
+
     data = data.copy()
 
     # Remove internal normalization keys
@@ -78,13 +109,16 @@ def save_lead_data(data):
 
     # Exact provider match first
     if data.get("source_id"):
+
         existing = Lead.objects.filter(
+            user=user,
             source_id=data["source_id"]
         ).first()
 
     # Cross-source database match
     if not existing:
-        for lead in Lead.objects.all():
+
+        for lead in Lead.objects.filter(user=user):
 
             stored = normalize_lead({
                 "business_name": lead.business_name,
@@ -123,14 +157,15 @@ def save_lead_data(data):
                 and (
                     incoming["_normalized_name"]
                     in stored["_normalized_name"]
-                    or stored["_normalized_name"]
+                    or
+                    stored["_normalized_name"]
                     in incoming["_normalized_name"]
                 )
             ):
                 existing = lead
                 break
 
-    # Existing lead: merge missing fields
+    # Existing lead
     if existing:
 
         for field in [
@@ -142,11 +177,16 @@ def save_lead_data(data):
             "email",
             "website",
         ]:
+
             if (
                 not getattr(existing, field)
                 and data.get(field)
             ):
-                setattr(existing, field, data[field])
+                setattr(
+                    existing,
+                    field,
+                    data[field]
+                )
 
         # Merge source information
         existing_sources = set(
@@ -160,7 +200,9 @@ def save_lead_data(data):
         existing.source = ",".join(
             sorted(
                 source
-                for source in existing_sources | new_sources
+                for source in (
+                    existing_sources | new_sources
+                )
                 if source
             )
         )
@@ -172,7 +214,7 @@ def save_lead_data(data):
 
         return existing, False
 
-    # New lead: allow only valid model fields
+    # New lead
     allowed_fields = {
         "business_name",
         "category",
@@ -192,87 +234,12 @@ def save_lead_data(data):
         if key in allowed_fields
     }
 
-    lead = Lead.objects.create(**lead_data)
+    lead = Lead.objects.create(
+        user=user,
+        **lead_data
+    )
 
     enrich_lead(lead)
     score_lead(lead)
 
     return lead, True
-
-
-def discover_leads(query, city, limit=20):
-
-    all_results = []
-
-    # OSM Logic
-    try:
-        osm_results = search_osm(query, city, limit)
-    except Exception as error:
-        print(f"OSM unavailable: {error}")
-        osm_results = []
-
-    all_results.extend(osm_results)
-
-    # Foursquare Logic
-    try:
-        foursquare_results = search_foursquare(
-            query,
-            city,
-            limit
-        )
-    except Exception as error:
-        print(f"Foursquare unavailable: {error}")
-        foursquare_results = []
-
-    all_results.extend(foursquare_results)
-
-    print(f"Total raw results: {len(all_results)}")
-
-    # Merge provider results
-    unique_results = []
-
-    for data in all_results:
-
-        data = normalize_lead(data)
-
-        match = find_match(unique_results, data)
-
-        if match:
-            merge_leads(match, data)
-
-            # Keep track of both sources
-            sources = set(
-                match.get("source", "").split(",")
-            )
-            sources.add(data.get("source", ""))
-
-            match["source"] = ",".join(
-                source for source in sources if source
-            )
-
-        else:
-            unique_results.append(data)
-
-    print(
-        f"Unique results after provider deduplication: "
-        f"{len(unique_results)}"
-    )
-
-    new_count = 0
-    duplicate_count = 0
-
-    # Save results using reusable function
-    for data in unique_results:
-
-        _, is_new = save_lead_data(data)
-
-        if is_new:
-            new_count += 1
-        else:
-            duplicate_count += 1
-
-    return {
-        "found": len(all_results),
-        "new": new_count,
-        "duplicates": duplicate_count,
-    }

@@ -14,12 +14,18 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 from openpyxl.utils import get_column_letter
 import io
-import csv
+
 
 from openpyxl import load_workbook
+from django.contrib.auth.decorators import login_required
 
+@login_required
 def lead_detail(request, lead_id):
-    lead = get_object_or_404(Lead, id=lead_id)
+    lead = get_object_or_404(
+        Lead,
+        id=lead_id,
+        user=request.user,
+    )
 
     # Save notes
     if request.method == "POST":
@@ -51,9 +57,13 @@ def lead_detail(request, lead_id):
         },
     )
 
-
+@login_required
 def update_status(request, lead_id):
-    lead = get_object_or_404(Lead, id=lead_id)
+    lead = get_object_or_404(
+        Lead,
+        id=lead_id,
+        user=request.user,
+    )
 
     if request.method == "POST":
         status = request.POST.get("status")
@@ -74,9 +84,10 @@ def update_status(request, lead_id):
 
     return redirect("lead_detail", lead_id=lead.id)
 
-
+@login_required
 def add_outreach(request, lead_id):
-    lead = get_object_or_404(Lead, id=lead_id)
+    lead = get_object_or_404(Lead, id=lead_id,
+        user=request.user,)
 
     if request.method == "POST":
         Outreach.objects.create(
@@ -250,7 +261,7 @@ def import_leads(request):
                     error_count += 1
                     continue
 
-                result = save_lead_data(data)
+                result = save_lead_data(data,user=request.user)
 
                 # Adapt result counting to your existing helper's return format
                 if result == "duplicate":
@@ -301,7 +312,7 @@ def export_leads(request):
     worksheet.title = "Leads"
 
     # Report title
-    worksheet.merge_cells("A1:M1")
+    worksheet.merge_cells("A1:K1")
     worksheet["A1"] = "FREELANCE OS — LEADS REPORT"
     worksheet["A1"].font = Font(
         bold=True,

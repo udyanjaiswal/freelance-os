@@ -1,15 +1,20 @@
 from django.shortcuts import get_object_or_404, redirect, render
+from django.contrib import messages
 
 from leads.models import Lead
 
 from .models import Campaign, CampaignLead
 
 from .message_generator import generate_message
-from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 
-
+@login_required
 def campaign_list(request):
-    campaigns = Campaign.objects.all().order_by("-created_at")
+    campaigns = (
+        Campaign.objects
+        .filter(created_by=request.user)
+        .order_by("-created_at")
+    )
 
     return render(
         request,
@@ -19,7 +24,7 @@ def campaign_list(request):
         },
     )
 
-
+@login_required
 def campaign_create(request):
 
     if request.method == "POST":
@@ -39,16 +44,17 @@ def campaign_create(request):
             offer=offer,
             channel=channel,
             status="draft",
-            created_by=request.user
-            if request.user.is_authenticated
-            else None,
+            created_by=request.user,
         )
 
         # -------------------------
         # FIND TARGET LEADS
         # -------------------------
 
-        leads = Lead.objects.all()
+        # Only current user's leads
+        leads = Lead.objects.filter(
+            user=request.user
+        )
 
         if potential and potential != "all":
             leads = leads.filter(
@@ -130,12 +136,13 @@ def campaign_create(request):
         },
     )
 
-
+@login_required
 def campaign_detail(request, campaign_id):
 
     campaign = get_object_or_404(
         Campaign,
         id=campaign_id,
+        created_by=request.user,
     )
 
     campaign_leads = (
@@ -153,8 +160,14 @@ def campaign_detail(request, campaign_id):
         },
     )
 
+@login_required
 def generate_campaign_messages(request, campaign_id):
-    campaign = get_object_or_404(Campaign, id=campaign_id)
+
+    campaign = get_object_or_404(
+        Campaign,
+        id=campaign_id,
+        created_by=request.user,
+    )
 
     campaign_leads = campaign.campaign_leads.all()
 
@@ -168,7 +181,10 @@ def generate_campaign_messages(request, campaign_id):
             continue
 
         try:
-            campaign_lead.message = generate_message(campaign_lead)
+            campaign_lead.message = generate_message(
+                campaign_lead
+            )
+
             campaign_lead.status = "ready"
 
             campaign_lead.save(
@@ -183,7 +199,7 @@ def generate_campaign_messages(request, campaign_id):
 
         except Exception as error:
             print(
-                f"Gemini generation failed for "
+                f"Message generation failed for "
                 f"{campaign_lead.lead.business_name}: {error}"
             )
 
@@ -213,8 +229,9 @@ def generate_campaign_messages(request, campaign_id):
         messages.warning(
             request,
             f"{success_count} message(s) generated successfully. "
-            f"{failed_count} message(s) failed because Gemini was "
-            f"temporarily unavailable. You can retry them later."
+            f"{failed_count} message(s) failed because the AI "
+            f"service was temporarily unavailable. "
+            f"You can retry them later."
         )
 
     elif success_count > 0:

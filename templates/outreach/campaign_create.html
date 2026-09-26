@@ -65,64 +65,83 @@
 
                 <hr class="my-4">
 
-                <!-- Section 2: Target Lead Filters -->
-                <div class="d-flex align-items-center gap-2 mb-3">
-                    <span class="badge bg-secondary rounded-circle p-2" style="width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem;">2</span>
-                    <h5 class="fw-semibold mb-0 text-dark">Target Prospect Filters</h5>
-                </div>
-                <p class="text-muted small mb-3">
-                    Choose which leads from your database should be added to this campaign. Leave any filter open to include all matching leads.
-                </p>
+                <!-- Section 2: Target Lead Filters (Collapsed by default) -->
+                <div class="mb-4">
+                    <button
+                        class="btn btn-outline-subtle w-100 d-flex align-items-center justify-content-between p-3 text-start rounded-2"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#leadFiltersCollapse"
+                        aria-expanded="false"
+                        aria-controls="leadFiltersCollapse"
+                        id="filtersToggleBtn"
+                    >
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-secondary rounded-circle" style="width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem;">2</span>
+                            <span class="fw-semibold text-dark">Target Prospect Filters</span>
+                            <span class="text-muted small d-none d-sm-inline">(Optional)</span>
+                        </div>
+                        <span class="fw-semibold text-dark small" id="filtersToggleLabel">Filters ▾</span>
+                    </button>
 
-                <div class="row g-3 mb-4">
-                    <div class="col-md-6">
-                        <label class="form-label small fw-semibold text-dark">Lead Potential</label>
-                        <select name="potential" class="form-select">
-                            <option value="all">All Potentials (High, Medium, Low)</option>
-                            <option value="high">High Potential Only</option>
-                            <option value="medium">Medium Potential Only</option>
-                            <option value="low">Low Potential Only</option>
-                        </select>
-                    </div>
+                    <div class="collapse mt-3" id="leadFiltersCollapse">
+                        <div class="p-3 p-md-4 rounded-2 border bg-light">
+                            <p class="text-muted small mb-3">
+                                Choose which leads from your database should be added to this campaign. Leave any filter open to include all matching leads.
+                            </p>
 
-                    <div class="col-md-6">
-                        <label class="form-label small fw-semibold text-dark">Pipeline Status</label>
-                        <select name="status" class="form-select">
-                            <option value="all">All Statuses</option>
-                            {% for value, label in status_choices %}
-                                <option value="{{ value }}">{{ label }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold text-dark">Lead Potential</label>
+                                    <select name="potential" class="form-select">
+                                        <option value="all">All Potentials (High, Medium, Low)</option>
+                                        <option value="high">High Potential Only</option>
+                                        <option value="medium">Medium Potential Only</option>
+                                        <option value="low">Low Potential Only</option>
+                                    </select>
+                                </div>
 
-                    <div class="col-md-4">
-                        <label class="form-label small fw-semibold text-dark">City / Locality Filter</label>
-                        <input
-                            type="text"
-                            name="city"
-                            class="form-control"
-                            placeholder="e.g. Lucknow (leave blank for all)"
-                        >
-                    </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-semibold text-dark">Pipeline Status</label>
+                                    <select name="status" class="form-select">
+                                        <option value="all">All Statuses</option>
+                                        {% for value, label in status_choices %}
+                                            <option value="{{ value }}">{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
 
-                    <div class="col-md-4">
-                        <label class="form-label small fw-semibold text-dark">Category Filter</label>
-                        <input
-                            type="text"
-                            name="category"
-                            class="form-control"
-                            placeholder="e.g. Salon (leave blank for all)"
-                        >
-                    </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold text-dark">City / Locality Filter</label>
+                                    <input
+                                        type="text"
+                                        name="city"
+                                        class="form-control"
+                                        placeholder="e.g. Lucknow (leave blank for all)"
+                                    >
+                                </div>
 
-                    <div class="col-md-4">
-                        <label class="form-label small fw-semibold text-dark">Website Status</label>
-                        <select name="website" class="form-select">
-                            <option value="all">Any Website Status</option>
-                            <option value="no_website">No Website Listed</option>
-                            <option value="map_only">Map / Directory Only</option>
-                            <option value="has_website">Has Existing Website</option>
-                        </select>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold text-dark">Category Filter</label>
+                                    <input
+                                        type="text"
+                                        name="category"
+                                        class="form-control"
+                                        placeholder="e.g. Salon (leave blank for all)"
+                                    >
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold text-dark">Website Status</label>
+                                    <select name="website" class="form-select">
+                                        <option value="all">Any Website Status</option>
+                                        <option value="no_website">No Website Listed</option>
+                                        <option value="map_only">Map / Directory Only</option>
+                                        <option value="has_website">Has Existing Website</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -147,6 +166,7 @@
 {% endblock %}
 
 {% block extra_js %}
+{{ block.super }}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     const form = document.getElementById("campaign-create-form");
@@ -159,6 +179,17 @@ document.addEventListener("DOMContentLoaded", function () {
         btnText.textContent = "Creating Campaign...";
         btnSpinner.classList.remove("d-none");
     });
+
+    const filterCollapse = document.getElementById("leadFiltersCollapse");
+    const filterLabel = document.getElementById("filtersToggleLabel");
+    if (filterCollapse && filterLabel) {
+        filterCollapse.addEventListener("show.bs.collapse", function () {
+            filterLabel.textContent = "Filters ▴";
+        });
+        filterCollapse.addEventListener("hide.bs.collapse", function () {
+            filterLabel.textContent = "Filters ▾";
+        });
+    }
 });
 </script>
 {% endblock %}

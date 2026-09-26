@@ -2,14 +2,17 @@
 from django.shortcuts import get_object_or_404, redirect, render
 from django.http import HttpResponse
 from django.contrib import messages
+from django.core.validators import URLValidator
+from django.core.exceptions import ValidationError
 
 from .models import Lead
 from outreach.models import Outreach
 from scoring.engine import get_score_breakdown
 from discovery.engine import save_lead_data
 
-import csv 
+import csv
 import os
+from datetime import date
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 from openpyxl.utils import get_column_letter
@@ -81,6 +84,13 @@ def update_status(request, lead_id):
                     "updated_at",
                 ]
             )
+        else:
+            # B14: surface invalid status to user
+            messages.error(
+                request,
+                f"'{status}' is not a valid status. "
+                "Please choose from the available options."
+            )
 
     return redirect("lead_detail", lead_id=lead.id)
 
@@ -90,14 +100,46 @@ def add_outreach(request, lead_id):
         user=request.user,)
 
     if request.method == "POST":
+        method = request.POST.get("method", "").strip()
+        follow_up_raw = request.POST.get("follow_up_date", "").strip()
+
+        # B6: validate outreach method
+        valid_methods = [
+            choice[0] for choice in Outreach.METHOD_CHOICES
+        ]
+        if method not in valid_methods:
+            messages.error(
+                request,
+                f"'{method}' is not a valid outreach method. "
+                f"Choose from: {', '.join(valid_methods)}."
+            )
+            return redirect("lead_detail", lead_id=lead.id)
+
+        # V4: follow-up date must be today or in the future
+        follow_up_date = follow_up_raw or None
+        if follow_up_raw:
+            try:
+                parsed_date = date.fromisoformat(follow_up_raw)
+                if parsed_date < date.today():
+                    messages.error(
+                        request,
+                        "Follow-up date cannot be in the past."
+                    )
+                    return redirect("lead_detail", lead_id=lead.id)
+                follow_up_date = follow_up_raw
+            except ValueError:
+                messages.error(
+                    request,
+                    "Invalid follow-up date format."
+                )
+                return redirect("lead_detail", lead_id=lead.id)
+
         Outreach.objects.create(
             lead=lead,
-            method=request.POST.get("method"),
+            method=method,
             message=request.POST.get("message", ""),
             outcome=request.POST.get("outcome", ""),
-            follow_up_date=(
-                request.POST.get("follow_up_date") or None
-            ),
+            follow_up_date=follow_up_date,
         )
 
         # First outreach automatically moves
@@ -114,6 +156,7 @@ def add_outreach(request, lead_id):
     return redirect("lead_detail", lead_id=lead.id)
 
 
+@login_required
 def import_leads(request):
     if request.method != "POST":
         return redirect("home")
@@ -171,6 +214,16 @@ def import_leads(request):
     for field, names in aliases.items():
         for name in names:
             alias_lookup[normalize_header(name)] = field
+
+    # D3: URL validator instance
+    _url_validator = URLValidator()
+
+    def is_valid_url(value):
+        try:
+            _url_validator(value)
+            return True
+        except ValidationError:
+            return False
 
     new_count = 0
     duplicate_count = 0
@@ -250,6 +303,9 @@ def import_leads(request):
                         value = str(value).strip()
 
                     if value:
+                        # D3: skip invalid website URLs silently
+                        if actual_field == "website" and not is_valid_url(value):
+                            continue
                         data[actual_field] = value
 
                 # Ignore completely empty rows
@@ -261,7 +317,7 @@ def import_leads(request):
                     error_count += 1
                     continue
 
-                result = save_lead_data(data,user=request.user)
+                result = save_lead_data(data, user=request.user)
 
                 # Adapt result counting to your existing helper's return format
                 if result == "duplicate":
@@ -290,8 +346,12 @@ def import_leads(request):
 
     return redirect("home")
 
+@login_required
 def export_leads(request):
-    leads = Lead.objects.all().order_by("-created_at")
+    # B5: only export the current user's leads — never expose another user's data
+    leads = Lead.objects.filter(
+        user=request.user
+    ).order_by("-created_at")
 
     fields = [
         ("Business Name", "business_name"),

@@ -110,37 +110,59 @@
 
                 <hr class="my-4">
 
-                <!-- Group 4: Hosting & Infrastructure -->
-                <h5 class="fw-semibold text-dark mb-3">Domain & Hosting (Optional)</h5>
-                <div class="row g-3 mb-4">
-                    <div class="col-md-4">
-                        <label class="form-label small fw-semibold text-dark">Domain Name</label>
-                        <input type="text" name="domain_name" class="form-control" placeholder="e.g. clientbusiness.com">
-                    </div>
+                <!-- Group 4: Domain & Hosting (Collapsed by default) -->
+                <div class="mb-4">
+                    <button
+                        class="btn btn-outline-subtle w-100 d-flex align-items-center justify-content-between p-3 text-start rounded-2"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#domainHostingCollapse"
+                        aria-expanded="false"
+                        aria-controls="domainHostingCollapse"
+                        id="domainHostingToggleBtn"
+                    >
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-hdd-network text-muted"></i>
+                            <span class="fw-semibold text-dark">Domain & Hosting</span>
+                            <span class="text-muted small d-none d-sm-inline">(Optional)</span>
+                        </div>
+                        <span class="fw-semibold text-dark small" id="domainHostingToggleLabel">Domain & Hosting ▾</span>
+                    </button>
 
-                    <div class="col-md-4">
-                        <label class="form-label small fw-semibold text-dark">Domain Provider</label>
-                        <input type="text" name="domain_provider" class="form-control" placeholder="e.g. Namecheap, GoDaddy">
-                    </div>
+                    <div class="collapse mt-3" id="domainHostingCollapse">
+                        <div class="p-3 p-md-4 rounded-2 border bg-light">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold text-dark">Domain Name</label>
+                                    <input type="text" name="domain_name" class="form-control" placeholder="e.g. clientbusiness.com">
+                                </div>
 
-                    <div class="col-md-4">
-                        <label class="form-label small fw-semibold text-dark">Domain Renewal Date</label>
-                        <input type="date" name="domain_renewal_date" class="form-control">
-                    </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold text-dark">Domain Provider</label>
+                                    <input type="text" name="domain_provider" class="form-control" placeholder="e.g. Namecheap, GoDaddy">
+                                </div>
 
-                    <div class="col-md-4">
-                        <label class="form-label small fw-semibold text-dark">Hosting Provider</label>
-                        <input type="text" name="hosting_provider" class="form-control" placeholder="e.g. Hostinger, DigitalOcean">
-                    </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold text-dark">Domain Renewal Date</label>
+                                    <input type="date" name="domain_renewal_date" class="form-control">
+                                </div>
 
-                    <div class="col-md-4">
-                        <label class="form-label small fw-semibold text-dark">Hosting Plan</label>
-                        <input type="text" name="hosting_plan" class="form-control" placeholder="e.g. Premium Cloud, Starter VPS">
-                    </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold text-dark">Hosting Provider</label>
+                                    <input type="text" name="hosting_provider" class="form-control" placeholder="e.g. Hostinger, DigitalOcean">
+                                </div>
 
-                    <div class="col-md-4">
-                        <label class="form-label small fw-semibold text-dark">Hosting Renewal Date</label>
-                        <input type="date" name="hosting_renewal_date" class="form-control">
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold text-dark">Hosting Plan</label>
+                                    <input type="text" name="hosting_plan" class="form-control" placeholder="e.g. Premium Cloud, Starter VPS">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold text-dark">Hosting Renewal Date</label>
+                                    <input type="date" name="hosting_renewal_date" class="form-control">
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -170,4 +192,22 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const domainCollapse = document.getElementById("domainHostingCollapse");
+    const domainLabel = document.getElementById("domainHostingToggleLabel");
+    if (domainCollapse && domainLabel) {
+        domainCollapse.addEventListener("show.bs.collapse", function () {
+            domainLabel.textContent = "Domain & Hosting ▴";
+        });
+        domainCollapse.addEventListener("hide.bs.collapse", function () {
+            domainLabel.textContent = "Domain & Hosting ▾";
+        });
+    }
+});
+</script>
 {% endblock %}

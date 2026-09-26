@@ -24,6 +24,7 @@ def campaign_list(request):
         },
     )
 
+
 @login_required
 def campaign_create(request):
 
@@ -31,7 +32,7 @@ def campaign_create(request):
 
         name = request.POST.get("name", "").strip()
         offer = request.POST.get("offer", "").strip()
-        channel = request.POST.get("channel")
+        channel = request.POST.get("channel", "").strip()
 
         potential = request.POST.get("potential")
         city = request.POST.get("city", "").strip()
@@ -39,13 +40,31 @@ def campaign_create(request):
         website = request.POST.get("website")
         status = request.POST.get("status")
 
-        campaign = Campaign.objects.create(
-            name=name,
-            offer=offer,
-            channel=channel,
-            status="draft",
-            created_by=request.user,
-        )
+        # B8/V5: validate required fields and channel
+        valid_channels = [
+            choice[0] for choice in Campaign.CHANNEL_CHOICES
+        ]
+        errors = []
+        if not name:
+            errors.append("Campaign name is required.")
+        if not offer:
+            errors.append("Offer description is required.")
+        if channel not in valid_channels:
+            errors.append(
+                f"'{channel}' is not a valid channel. "
+                f"Choose from: {', '.join(valid_channels)}."
+            )
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+            return render(
+                request,
+                "outreach/campaign_create.html",
+                {
+                    "status_choices": Lead.STATUS_CHOICES,
+                    "form_data": request.POST,
+                },
+            )
 
         # -------------------------
         # FIND TARGET LEADS
@@ -108,6 +127,35 @@ def campaign_create(request):
                     or "maps.app.goo.gl" in lead.website
                 )
             ]
+
+        # B7: abort if no leads match — do NOT create an empty campaign
+        if not leads:
+            messages.error(
+                request,
+                "No leads match the selected filters. "
+                "Adjust the filters and try again. "
+                "No campaign was created."
+            )
+            return render(
+                request,
+                "outreach/campaign_create.html",
+                {
+                    "status_choices": Lead.STATUS_CHOICES,
+                    "form_data": request.POST,
+                },
+            )
+
+        # -------------------------
+        # CREATE CAMPAIGN (only after validation + leads confirmed)
+        # -------------------------
+
+        campaign = Campaign.objects.create(
+            name=name,
+            offer=offer,
+            channel=channel,
+            status="draft",
+            created_by=request.user,
+        )
 
         # -------------------------
         # CREATE CAMPAIGN LEADS

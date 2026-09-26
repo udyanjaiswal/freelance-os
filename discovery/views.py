@@ -37,9 +37,13 @@ def discover(request):
 
         search = request.POST.get("search", "").strip()
 
-        limit = int(
-            request.POST.get("limit", 100)
-        )
+        raw_limit = request.POST.get("limit", 20)
+        try:
+            limit = int(raw_limit)
+        except (ValueError, TypeError):
+            limit = 20
+        # B9: clamp limit to [1, 100]
+        limit = max(1, min(limit, 100))
 
         query, city = parse_search_query(search)
 

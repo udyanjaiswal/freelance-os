@@ -173,6 +173,15 @@ def import_leads(request):
         messages.error(request, "Only CSV and XLSX files are supported.")
         return redirect("home")
 
+    # Security: File upload size limit (5MB)
+    MAX_UPLOAD_SIZE = 5 * 1024 * 1024
+    if uploaded_file.size > MAX_UPLOAD_SIZE:
+        messages.error(
+            request,
+            "File size exceeds 5MB limit. Please upload a smaller file."
+        )
+        return redirect("home")
+
     # Actual Lead model fields
     allowed_fields = {
         "business_name",
@@ -317,13 +326,26 @@ def import_leads(request):
                     error_count += 1
                     continue
 
+                # DoS Prevention: cap maximum imported rows in a single batch
+                MAX_IMPORT_ROWS = 2500
+                if imported_count >= MAX_IMPORT_ROWS:
+                    messages.warning(
+                        request,
+                        f"Import reached batch safety limit of {MAX_IMPORT_ROWS} rows."
+                    )
+                    break
+
                 result = save_lead_data(data, user=request.user)
 
-                # Adapt result counting to your existing helper's return format
-                if result == "duplicate":
-                    duplicate_count += 1
-                else:
+                is_new = (
+                    result[1]
+                    if isinstance(result, tuple)
+                    else (result != "duplicate")
+                )
+                if is_new:
                     new_count += 1
+                else:
+                    duplicate_count += 1
 
                 imported_count += 1
 

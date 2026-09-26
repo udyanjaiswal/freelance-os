@@ -25,10 +25,16 @@ load_dotenv(BASE_DIR / ".env")
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-0(-6fanh$5wuw^dcf)e9e5qebqd$b&)0bj3j^4l!*x^y&k^)d+'
+# Must be set in the .env file — the app will refuse to start if missing.
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    raise RuntimeError(
+        "SECRET_KEY is not set. Add SECRET_KEY=<your-key> to your .env file. "
+        "Generate one with: python -c \"from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())\""
+    )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "True") == "True"
 
 _allowed_hosts_env = os.getenv("ALLOWED_HOSTS", "")
 ALLOWED_HOSTS = (
@@ -36,6 +42,27 @@ ALLOWED_HOSTS = (
     if _allowed_hosts_env
     else ["localhost", "127.0.0.1"]
 )
+
+# ── Security headers ──────────────────────────────────────────────────────────
+# Prevent this site from being framed (clickjacking defence)
+X_FRAME_OPTIONS = "DENY"
+
+# Prevent browsers from MIME-sniffing a response away from the declared content-type
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# NOTE: SECURE_BROWSER_XSS_FILTER was removed in Django 4.1 because the
+# X-XSS-Protection header is deprecated and removed from all modern browsers.
+# Real XSS defence: use CSP headers (Content-Security-Policy) at the web-server
+# layer when you deploy (nginx/caddy config — outside Django scope for now).
+
+# NOTE: the flags below require HTTPS. Enable them when you deploy behind TLS.
+# SESSION_COOKIE_SECURE = True
+# CSRF_COOKIE_SECURE = True
+# SECURE_SSL_REDIRECT = True
+# SECURE_HSTS_SECONDS = 31536000
+# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+# SECURE_HSTS_PRELOAD = True
+
 
 
 # Application definition

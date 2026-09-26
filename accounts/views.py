@@ -1,7 +1,10 @@
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.contrib.auth import login,  logout
+from django.contrib.auth import login, logout
 from django.shortcuts import render, redirect
+from django.views.decorators.http import require_POST
+from django.utils.http import url_has_allowed_host_and_scheme
 from .forms import SignupForm
+
 
 def signup(request):
     if request.method == "POST":
@@ -23,6 +26,15 @@ def login_view(request):
             user = form.get_user()
             login(request, user)
 
+            # Open-redirect guard: only use `next` if it is a safe relative URL
+            next_url = request.POST.get("next") or request.GET.get("next", "")
+            if next_url and url_has_allowed_host_and_scheme(
+                url=next_url,
+                allowed_hosts={request.get_host()},
+                require_https=request.is_secure(),
+            ):
+                return redirect(next_url)
+
             return redirect("home")
 
     else:
@@ -34,6 +46,8 @@ def login_view(request):
         {"form": form},
     )
 
+
+@require_POST  # GET logout is a CSRF attack vector — block it
 def logout_view(request):
     logout(request)
     response = redirect("login")

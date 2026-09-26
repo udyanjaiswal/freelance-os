@@ -25,7 +25,7 @@
     </div>
 
     <div class="d-flex align-items-center gap-2">
-        <a href="/" class="btn btn-outline-subtle btn-sm">
+        <a href="{% url 'home' %}" class="btn btn-outline-subtle btn-sm">
             <i class="bi bi-arrow-left me-1"></i> Back to Leads
         </a>
         {% if lead.status == "converted" and lead.client %}
@@ -46,11 +46,11 @@
             <div class="d-flex align-items-center justify-content-between mb-2">
                 <span class="small fw-semibold text-muted text-uppercase">Lead Score</span>
                 {% if lead.potential == "high" %}
-                    <span class="status-pill pill-high">🔥 High Potential</span>
+                    <span class="status-pill pill-high">High Potential</span>
                 {% elif lead.potential == "medium" %}
-                    <span class="status-pill pill-medium">🟡 Medium</span>
+                    <span class="status-pill pill-medium">Medium</span>
                 {% else %}
-                    <span class="status-pill pill-low">⚪ Low</span>
+                    <span class="status-pill pill-low">Low</span>
                 {% endif %}
             </div>
 
@@ -92,10 +92,12 @@
                 <p class="text-muted small mb-3">
                     Ready to work together? Convert this lead into a client to manage active projects, deliverables, milestones, and payments.
                 </p>
-                <form method="post" action="{% url 'convert_lead_to_client' lead.id %}" onsubmit="return confirm('Convert {{ lead.business_name|escapejs }} to a client?');">
+                <form method="post" action="{% url 'convert_lead_to_client' lead.id %}" id="convertForm" onsubmit="return confirm('Convert {{ lead.business_name|escapejs }} to a client?');">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-brand w-100 btn-sm fw-semibold d-inline-flex align-items-center justify-content-center gap-2">
-                        <i class="bi bi-person-plus"></i> Convert to Client
+                    <button type="submit" id="convertBtn" class="btn btn-brand w-100 btn-sm fw-semibold d-inline-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-person-plus" id="convertIcon"></i>
+                        <span id="convertSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                        <span id="convertText">Convert to Client</span>
                     </button>
                 </form>
             {% else %}
@@ -210,7 +212,7 @@
                     </div>
                 </div>
 
-                <form method="POST" action="{% url 'update_status' lead.id %}" class="d-flex gap-2 align-items-center">
+                <form method="POST" action="{% url 'update_status' lead.id %}" id="statusForm" class="d-flex gap-2 align-items-center">
                     {% csrf_token %}
                     <select name="status" class="form-select form-select-sm" style="min-width: 170px;">
                         {% for value, label in lead.STATUS_CHOICES %}
@@ -219,8 +221,9 @@
                             </option>
                         {% endfor %}
                     </select>
-                    <button type="submit" class="btn btn-sm btn-brand text-nowrap">
-                        Update Status
+                    <button type="submit" id="statusBtn" class="btn btn-sm btn-brand text-nowrap d-inline-flex align-items-center gap-1">
+                        <span id="statusSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                        <span id="statusText">Update Status</span>
                     </button>
                 </form>
             </div>
@@ -230,7 +233,7 @@
             <!-- Notes Section -->
             <div>
                 <h6 class="fw-semibold text-dark small mb-2">Private Notes</h6>
-                <form method="POST">
+                <form method="POST" id="notesForm">
                     {% csrf_token %}
                     <textarea
                         name="notes"
@@ -239,8 +242,10 @@
                         placeholder="Add notes about your conversations, requirements, or price quotes..."
                     >{{ lead.notes }}</textarea>
                     <div class="d-flex justify-content-end">
-                        <button type="submit" class="btn btn-sm btn-outline-subtle">
-                            <i class="bi bi-save me-1"></i> Save Notes
+                        <button type="submit" id="notesBtn" class="btn btn-sm btn-outline-subtle d-inline-flex align-items-center gap-1">
+                            <i class="bi bi-save me-1" id="notesIcon"></i>
+                            <span id="notesSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                            <span id="notesText">Save Notes</span>
                         </button>
                     </div>
                 </form>
@@ -257,7 +262,7 @@
             </div>
 
             <!-- Log Outreach Form -->
-            <form method="POST" action="{% url 'add_outreach' lead.id %}" class="p-3 bg-light rounded mb-4 border">
+            <form method="POST" action="{% url 'add_outreach' lead.id %}" id="outreachForm" class="p-3 bg-light rounded mb-4 border">
                 {% csrf_token %}
 
                 <div class="fw-semibold text-dark small mb-3">Record New Outreach Activity</div>
@@ -266,9 +271,9 @@
                     <div class="col-md-4">
                         <label class="form-label small fw-semibold text-muted">Channel</label>
                         <select name="method" class="form-select form-select-sm" required>
-                            <option value="call">📞 Phone Call</option>
-                            <option value="whatsapp">💬 WhatsApp</option>
-                            <option value="email">✉️ Email</option>
+                            <option value="call">Phone Call</option>
+                            <option value="whatsapp">WhatsApp</option>
+                            <option value="email">Email</option>
                         </select>
                     </div>
 
@@ -288,8 +293,10 @@
                     </div>
 
                     <div class="col-12 d-flex justify-content-end">
-                        <button type="submit" class="btn btn-sm btn-brand">
-                            <i class="bi bi-plus-circle me-1"></i> Save Activity
+                        <button type="submit" id="outreachBtn" class="btn btn-sm btn-brand d-inline-flex align-items-center gap-1">
+                            <i class="bi bi-plus-circle me-1" id="outreachIcon"></i>
+                            <span id="outreachSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                            <span id="outreachText">Save Activity</span>
                         </button>
                     </div>
                 </div>
@@ -344,4 +351,75 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // 1. Convert to Client Form
+    const convertForm = document.getElementById("convertForm");
+    const convertBtn = document.getElementById("convertBtn");
+    const convertIcon = document.getElementById("convertIcon");
+    const convertSpinner = document.getElementById("convertSpinner");
+    const convertText = document.getElementById("convertText");
+
+    if (convertForm && convertBtn) {
+        convertForm.addEventListener("submit", function (e) {
+            // Confirmation is handled by onsubmit attribute; if user proceeds:
+            setTimeout(() => {
+                convertBtn.disabled = true;
+                if (convertIcon) convertIcon.classList.add("d-none");
+                if (convertSpinner) convertSpinner.classList.remove("d-none");
+                if (convertText) convertText.textContent = "Converting...";
+            }, 10);
+        });
+    }
+
+    // 2. Status Update Form
+    const statusForm = document.getElementById("statusForm");
+    const statusBtn = document.getElementById("statusBtn");
+    const statusSpinner = document.getElementById("statusSpinner");
+    const statusText = document.getElementById("statusText");
+
+    if (statusForm && statusBtn) {
+        statusForm.addEventListener("submit", function () {
+            statusBtn.disabled = true;
+            if (statusSpinner) statusSpinner.classList.remove("d-none");
+            if (statusText) statusText.textContent = "Updating...";
+        });
+    }
+
+    // 3. Notes Form
+    const notesForm = document.getElementById("notesForm");
+    const notesBtn = document.getElementById("notesBtn");
+    const notesIcon = document.getElementById("notesIcon");
+    const notesSpinner = document.getElementById("notesSpinner");
+    const notesText = document.getElementById("notesText");
+
+    if (notesForm && notesBtn) {
+        notesForm.addEventListener("submit", function () {
+            notesBtn.disabled = true;
+            if (notesIcon) notesIcon.classList.add("d-none");
+            if (notesSpinner) notesSpinner.classList.remove("d-none");
+            if (notesText) notesText.textContent = "Saving...";
+        });
+    }
+
+    // 4. Outreach Form
+    const outreachForm = document.getElementById("outreachForm");
+    const outreachBtn = document.getElementById("outreachBtn");
+    const outreachIcon = document.getElementById("outreachIcon");
+    const outreachSpinner = document.getElementById("outreachSpinner");
+    const outreachText = document.getElementById("outreachText");
+
+    if (outreachForm && outreachBtn) {
+        outreachForm.addEventListener("submit", function () {
+            outreachBtn.disabled = true;
+            if (outreachIcon) outreachIcon.classList.add("d-none");
+            if (outreachSpinner) outreachSpinner.classList.remove("d-none");
+            if (outreachText) outreachText.textContent = "Saving...";
+        });
+    }
+});
+</script>
 {% endblock %}

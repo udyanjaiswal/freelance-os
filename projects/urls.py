@@ -11,6 +11,12 @@ urlpatterns = [
     ),
 
     path(
+        "clients/create/",
+        views.client_create,
+        name="client_create",
+    ),
+
+    path(
         "clients/<int:client_id>/",
         views.client_detail,
         name="client_detail",

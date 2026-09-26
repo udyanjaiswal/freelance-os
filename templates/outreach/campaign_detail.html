@@ -43,29 +43,26 @@
             class="btn btn-brand btn-sm d-inline-flex align-items-center gap-2"
             id="generate-btn"
         >
-            <i class="bi bi-stars" id="generate-icon"></i>
-            <span id="generate-text">Generate AI Messages</span>
+            <i class="bi bi-pencil-square" id="generate-icon"></i>
+            <span id="generate-text">Draft Personalized Pitches</span>
             <span id="generate-spinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
         </a>
         {% endif %}
     </div>
 </div>
 
-<!-- Long-Running AI Generation Alert -->
-<div id="generation-notice" class="alert alert-info border shadow-sm d-none mb-4" role="alert">
-    <div class="d-flex align-items-start gap-3">
-        <div class="spinner-border text-primary mt-1" role="status" style="width: 1.5rem; height: 1.5rem;">
+<!-- Long-Running Message Drafting Alert -->
+<div id="generation-notice" class="alert alert-light border shadow-sm d-none mb-4" role="alert">
+    <div class="d-flex align-items-center gap-3">
+        <div class="spinner-border text-dark" role="status" style="width: 1.5rem; height: 1.5rem;">
             <span class="visually-hidden">Loading...</span>
         </div>
         <div class="flex-grow-1">
-            <h6 class="alert-heading fw-bold mb-1">Drafting Personalized Pitches with Gemini AI...</h6>
-            <p class="small mb-2 text-muted">
-                Each message is individually personalized based on the business's website status, category, and your offer.
-                This can take 10–25 seconds. Please keep this window open.
+            <h6 class="alert-heading fw-bold mb-1 text-dark">Drafting Personalized Pitches...</h6>
+            <p class="small mb-0 text-muted">
+                Each message is individually tailored based on the business's website status, category, and your specific offer.
+                This takes about 10–20 seconds. Please keep this window open.
             </p>
-            <div class="progress" style="height: 4px;">
-                <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" style="width: 100%;"></div>
-            </div>
         </div>
     </div>
 </div>
@@ -144,22 +141,22 @@
 
                                 <td>
                                     {% if item.lead.potential == "high" %}
-                                        <span class="status-pill pill-high">🔥 High</span>
+                                        <span class="status-pill pill-high">High</span>
                                     {% elif item.lead.potential == "medium" %}
-                                        <span class="status-pill pill-medium">🟡 Medium</span>
+                                        <span class="status-pill pill-medium">Medium</span>
                                     {% else %}
-                                        <span class="status-pill pill-low">⚪ Low</span>
+                                        <span class="status-pill pill-low">Low</span>
                                     {% endif %}
                                 </td>
 
                                 <td>
                                     {% if item.channel == "whatsapp" %}
                                         <span class="badge bg-success-subtle text-success border border-success-subtle">
-                                            <i class="bi bi-whatsapp me-1"></i> WhatsApp
+                                             <i class="bi bi-whatsapp me-1"></i> WhatsApp
                                         </span>
                                     {% elif item.channel == "email" %}
                                         <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
-                                            <i class="bi bi-envelope me-1"></i> Email
+                                             <i class="bi bi-envelope me-1"></i> Email
                                         </span>
                                     {% else %}
                                         <span class="badge bg-light text-dark border">
@@ -179,11 +176,8 @@
                                         <span class="status-pill pill-medium">Replied</span>
                                     {% elif item.status == "interested" %}
                                         <span class="status-pill pill-success">Interested</span>
-
-                                    {% elif campaign_lead.status == "failed" %}
-    <span class="badge badge-subtle-danger">
-        Failed
-    </span>    
+                                    {% elif item.status == "failed" %}
+                                        <span class="status-pill pill-high">Failed</span>
                                     {% else %}
                                         <span class="status-pill pill-low">{{ item.get_status_display }}</span>
                                     {% endif %}
@@ -195,7 +189,7 @@
                                             <i class="bi bi-check2"></i> Drafted
                                         </span>
                                     {% else %}
-                                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">
+                                        <span class="badge bg-light text-muted border">
                                             <i class="bi bi-hourglass-split"></i> Pending
                                         </span>
                                     {% endif %}
@@ -209,7 +203,7 @@
                                         <div class="custom-card p-3 bg-white">
                                             <div class="d-flex justify-content-between align-items-center mb-2">
                                                 <span class="small fw-semibold text-muted d-flex align-items-center gap-1">
-                                                    <i class="bi bi-stars text-warning"></i> Personalized Pitch
+                                                    <i class="bi bi-chat-quote text-muted me-1"></i> Tailored Outreach Pitch
                                                 </span>
                                                 <span class="badge bg-light text-dark border small">Ready to dispatch</span>
                                             </div>
@@ -307,7 +301,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (generateBtn) {
         if (readyCount > 0 && pendingCount === 0) {
-            generateText.textContent = "Regenerate Messages";
+            generateText.textContent = "Redraft Pitches";
         }
 
         generateBtn.addEventListener("click", function (e) {
@@ -319,7 +313,7 @@ document.addEventListener("DOMContentLoaded", function () {
             generateBtn.classList.add("disabled");
             if (generateIcon) generateIcon.classList.add("d-none");
             if (generateSpinner) generateSpinner.classList.remove("d-none");
-            if (generateText) generateText.textContent = "Generating Messages...";
+            if (generateText) generateText.textContent = "Drafting Pitches...";
             if (notice) notice.classList.remove("d-none");
         });
     }

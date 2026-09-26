@@ -58,17 +58,9 @@ class Project(models.Model):
     start_date = models.DateField(null=True, blank=True)
     deadline = models.DateField(null=True, blank=True)
 
-    price = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=0,
-    )
+    price = models.PositiveIntegerField(default=0)
 
-    amount_paid = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=0,
-    )
+    amount_paid = models.PositiveIntegerField(default=0)
 
     domain_name = models.CharField(max_length=255, blank=True)
     domain_provider = models.CharField(max_length=100, blank=True)

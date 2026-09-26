@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}New Client — Freelancer OS{% endblock %}
+
+{% block content %}
+
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-2 border-bottom">
+    <div>
+        <h1 class="display-6 fw-normal mb-1">New Client</h1>
+        <p class="text-muted mb-0">
+            Add an existing client directly to your workspace.
+        </p>
+    </div>
+
+    <a
+        href="{% url 'client_list' %}"
+        class="btn btn-outline-subtle btn-sm"
+    >
+        <i class="bi bi-arrow-left me-1"></i>
+        All Clients
+    </a>
+</div>
+
+
+<div class="row justify-content-center">
+
+    <div class="col-lg-8">
+
+        <div class="custom-card p-4 p-md-5">
+
+            {% if error %}
+                <div class="alert alert-danger small">
+                    {{ error }}
+                </div>
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <h5 class="fw-semibold text-dark mb-3">
+                    Client Information
+                </h5>
+
+                <div class="row g-3">
+
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold text-dark">
+                            Business Name
+                            <span class="text-danger">*</span>
+                        </label>
+
+                        <input
+                            type="text"
+                            name="business_name"
+                            class="form-control"
+                            placeholder="e.g. ABC Digital Studio"
+                            value="{{ form_data.business_name|default:'' }}"
+                            required
+                        >
+                    </div>
+
+
+                    <div class="col-md-6">
+
+                        <label class="form-label small fw-semibold text-dark">
+                            Contact Person
+                        </label>
+
+                        <input
+                            type="text"
+                            name="name"
+                            class="form-control"
+                            placeholder="e.g. Rahul Sharma"
+                            value="{{ form_data.name|default:'' }}"
+                        >
+
+                    </div>
+
+
+                    <div class="col-md-6">
+
+                        <label class="form-label small fw-semibold text-dark">
+                            Phone
+                        </label>
+
+                        <input
+                            type="text"
+                            name="phone"
+                            class="form-control"
+                            placeholder="e.g. +91 98765 43210"
+                            value="{{ form_data.phone|default:'' }}"
+                        >
+
+                    </div>
+
+
+                    <div class="col-12">
+
+                        <label class="form-label small fw-semibold text-dark">
+                            Email
+                        </label>
+
+                        <input
+                            type="email"
+                            name="email"
+                            class="form-control"
+                            placeholder="client@example.com"
+                            value="{{ form_data.email|default:'' }}"
+                        >
+
+                    </div>
+
+
+                    <div class="col-12">
+
+                        <label class="form-label small fw-semibold text-dark">
+                            Notes
+                        </label>
+
+                        <textarea
+                            name="notes"
+                            class="form-control"
+                            rows="4"
+                            placeholder="Add any useful client information..."
+                        >{{ form_data.notes|default:'' }}</textarea>
+
+                    </div>
+
+                </div>
+
+
+                <div class="d-flex justify-content-between align-items-center pt-4 mt-4 border-top">
+
+                    <a
+                        href="{% url 'client_list' %}"
+                        class="btn btn-outline-subtle"
+                    >
+                        Cancel
+                    </a>
+
+                    <button
+                        type="submit"
+                        class="btn btn-brand px-4"
+                    >
+                        <i class="bi bi-check2 me-1"></i>
+                        Create Client
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

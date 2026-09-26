@@ -1,3 +1,8 @@
+/* ==========================================================================
+   Freelancer OS — Base Global Stylesheet
+   Restrained, authentic editorial design built on Bootstrap 5.
+   ========================================================================== */
+
 :root {
     --bg-page: #fbfaf7;
     --bg-card: #ffffff;
@@ -16,6 +21,10 @@
     --accent-amber-soft: #fffbeb;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     font-family: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
     background-color: var(--bg-page);
@@ -24,17 +33,38 @@ body {
     letter-spacing: -0.01em;
 }
 
-/* Bespoke Headings */
-h1,
-h2,
-h3,
-.font-serif {
+/* Controlled Editorial Typography */
+h1, h2, h3, .font-serif {
     font-family: "Newsreader", Georgia, serif;
     color: var(--text-heading);
     font-feature-settings: "pnum", "onum";
 }
 
-/* Custom Header */
+h1, .h1 {
+    font-size: clamp(1.75rem, 3vw, 2.25rem);
+    font-weight: 500;
+    line-height: 1.15;
+}
+
+h2, .h2 {
+    font-size: clamp(1.4rem, 2.2vw, 1.7rem);
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+h3, .h3 {
+    font-size: clamp(1.15rem, 1.8vw, 1.35rem);
+    font-weight: 500;
+    line-height: 1.25;
+}
+
+.display-6 {
+    font-size: clamp(1.85rem, 3vw, 2.35rem) !important;
+    font-weight: 500 !important;
+    line-height: 1.12 !important;
+}
+
+/* Custom Header & Navbar */
 .app-navbar {
     background-color: #ffffff;
     border-bottom: 1px solid var(--border-warm);
@@ -55,14 +85,14 @@ h3,
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
     background-color: #1c1917;
     color: #fbfaf7;
     border-radius: 6px;
     font-family: "Newsreader", serif;
     font-weight: 600;
-    font-size: 1.05rem;
+    font-size: 1rem;
     line-height: 1;
 }
 
@@ -70,9 +100,9 @@ h3,
     font-size: 0.9rem;
     font-weight: 500;
     color: var(--text-muted) !important;
-    padding: 0.45rem 0.85rem !important;
+    padding: 0.4rem 0.8rem !important;
     border-radius: 6px;
-    transition: all 0.15s ease;
+    transition: color 0.15s ease, background-color 0.15s ease;
 }
 
 .nav-link:hover {
@@ -86,28 +116,28 @@ h3,
     font-weight: 600;
 }
 
-/* Custom Cards with subtle artisanal borders */
+/* Cards with tactile subtle borders */
 .custom-card {
     background-color: var(--bg-card);
     border: 1px solid var(--border-warm);
     border-radius: 8px;
-    box-shadow: 0 1px 2px rgba(28, 25, 23, 0.03);
+    box-shadow: 0 1px 3px rgba(28, 25, 23, 0.03);
 }
 
 .card-header-clean {
     background-color: #ffffff;
     border-bottom: 1px solid var(--border-subtle);
-    padding: 1rem 1.25rem;
+    padding: 0.85rem 1.25rem;
 }
 
-/* Buttons with tactile authenticity */
+/* Restrained Buttons */
 .btn {
     font-family: "Plus Jakarta Sans", sans-serif;
     font-weight: 500;
     border-radius: 6px;
     font-size: 0.875rem;
-    padding: 0.45rem 0.9rem;
-    transition: all 0.15s ease;
+    padding: 0.42rem 0.85rem;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .btn-brand {
@@ -134,7 +164,7 @@ h3,
     color: #1c1917;
 }
 
-/* Clean Form Controls */
+/* Form Controls */
 .form-control,
 .form-select {
     border-radius: 6px;
@@ -142,7 +172,7 @@ h3,
     background-color: #ffffff;
     color: var(--text-heading);
     font-size: 0.9rem;
-    padding: 0.5rem 0.85rem;
+    padding: 0.48rem 0.8rem;
 }
 
 .form-control:focus,
@@ -151,10 +181,11 @@ h3,
     box-shadow: 0 0 0 3px rgba(194, 65, 12, 0.12);
 }
 
-/* Custom Authentic Badges */
+/* Status Badges */
 .status-pill {
     display: inline-flex;
     align-items: center;
+    white-space: nowrap;
     font-size: 0.75rem;
     font-weight: 600;
     padding: 0.2rem 0.55rem;
@@ -193,21 +224,21 @@ h3,
     border: 1px solid #bae6fd;
 }
 
-/* Clean Table */
+/* Tables */
 .table {
     --bs-table-bg: transparent;
     margin-bottom: 0;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
 }
 
 .table > thead th {
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--text-muted);
     font-weight: 600;
-    padding: 0.75rem 1rem;
-    background-color: #f9f8f4;
+    padding: 0.7rem 0.9rem;
+    background-color: #faf9f6;
     border-bottom: 1px solid var(--border-warm);
 }
 
@@ -216,21 +247,63 @@ h3,
 }
 
 .table > tbody > tr:hover {
-    background-color: #fbfaf7;
+    background-color: #faf9f5;
 }
 
 .table > tbody td {
-    padding: 0.85rem 1rem;
+    padding: 0.8rem 0.9rem;
     vertical-align: middle;
 }
 
-/* Pitch Preview Sheet */
-.pitch-sheet {
-    background-color: #faf9f5;
-    border: 1px solid var(--border-warm);
-    border-left: 3px solid var(--brand-terracotta);
-    border-radius: 6px;
-    padding: 1.1rem 1.25rem;
-    font-size: 0.925rem;
-    line-height: 1.6;
+/* Utilities */
+.bg-page {
+    background-color: var(--bg-page);
+}
+
+.text-danger-hover:hover {
+    color: #dc2626 !important;
+}
+
+/* Skeleton Loading Utilities */
+@keyframes skeleton-shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+.skeleton-box {
+    display: inline-block;
+    height: 1em;
+    position: relative;
+    overflow: hidden;
+    background-color: #edeae2;
+    background-image: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0,
+        rgba(255, 255, 255, 0.45) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    background-size: 200% 100%;
+    background-repeat: no-repeat;
+    animation: skeleton-shimmer 1.5s infinite linear;
+    border-radius: 4px;
+}
+
+.skeleton-text {
+    height: 0.85rem;
+    margin-bottom: 0.4rem;
+    border-radius: 3px;
+}
+
+/* No-wheel utility for number inputs */
+input.no-wheel::-webkit-outer-spin-button,
+input.no-wheel::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+input[type="number"].no-wheel {
+    -moz-appearance: textfield;
 }

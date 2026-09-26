@@ -13,7 +13,7 @@
     </p>
   </div>
 
-  <div class="d-flex flex-wrap align-items-center gap-2">
+  <div class="d-flex flex-wrap align-items-center justify-content-md-end gap-2">
     <!-- Import Leads Button -->
     <form
       method="POST"
@@ -31,28 +31,29 @@
         accept=".csv,.xlsx"
         hidden
         required
-        onchange="if (this.files.length) this.form.submit();"
       />
 
       <button
         type="button"
-        class="btn btn-dark d-inline-flex align-items-center gap-2"
+        id="importBtn"
+        class="btn btn-dark btn-sm d-inline-flex align-items-center gap-1"
         onclick="document.getElementById('leadsFileInput').click()"
       >
-        <i class="bi bi-upload"></i>
-        Import CSV
+        <i class="bi bi-upload" id="importIcon"></i>
+        <span id="importSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+        <span id="importText">Import CSV</span>
       </button>
     </form>
     <a
       href="{% url 'export_leads' %}"
-      class="btn btn-light border-dark d-inline-flex align-items-center gap-2"
+      class="btn btn-light border-dark btn-sm d-inline-flex align-items-center gap-1"
     >
       <i class="bi bi-download"></i>
       Export CSV
     </a>
     <a
-      href="/discover/"
-      class="btn btn-brand d-inline-flex align-items-center gap-2"
+      href="{% url 'discover' %}"
+      class="btn btn-brand btn-sm d-inline-flex align-items-center gap-1"
     >
       <i class="bi bi-search"></i>
       Find New Leads
@@ -60,7 +61,7 @@
 
     <a
       href="{% url 'campaign_create' %}"
-      class="btn btn-outline-subtle d-inline-flex align-items-center gap-2"
+      class="btn btn-outline-subtle btn-sm d-inline-flex align-items-center gap-1"
     >
       <i class="bi bi-send"></i>
       New Campaign
@@ -74,12 +75,13 @@
     <a href="?" class="text-decoration-none">
       <div
         class="custom-card p-3 h-100 d-flex flex-column justify-content-between"
+        style="border-left: 3px solid #1c1917"
       >
-        <span class="text-muted small">Total Leads</span>
+        <span class="text-dark small fw-semibold">Total Leads</span>
 
         <div class="d-flex align-items-baseline justify-content-between mt-2">
           <span class="fs-3 fw-bold text-dark"> {{ total_leads }} </span>
-          <span class="text-muted small"> in database </span>
+          <span class="badge bg-light text-dark border small"> Database </span>
         </div>
       </div>
     </a>
@@ -118,14 +120,19 @@
         class="custom-card p-3 h-100 d-flex flex-column justify-content-between"
         style="border-left: 3px solid #d97706"
       >
-        <span class="text-warning small fw-semibold text-dark">
+        <span class="small fw-semibold" style="color: #b45309;">
           Medium Potential
         </span>
 
         <div class="d-flex align-items-baseline justify-content-between mt-2">
-          <span class="fs-3 fw-bold text-dark"> {{ medium_leads }} </span>
+          <span class="fs-3 fw-bold" style="color: #b45309;"> {{ medium_leads }} </span>
 
-          <span class="text-muted small"> qualifying </span>
+          <span
+            class="badge bg-warning-subtle border border-warning-subtle small"
+            style="color: #92400e;"
+          >
+            Review
+          </span>
         </div>
       </div>
     </a>
@@ -138,13 +145,14 @@
     >
       <div
         class="custom-card p-3 h-100 d-flex flex-column justify-content-between"
+        style="border-left: 3px solid #a8a29e"
       >
-        <span class="text-muted small"> Low Potential </span>
+        <span class="text-muted small fw-semibold"> Low Potential </span>
 
         <div class="d-flex align-items-baseline justify-content-between mt-2">
           <span class="fs-3 fw-bold text-muted"> {{ low_leads }} </span>
 
-          <span class="text-muted small"> baseline </span>
+          <span class="badge bg-light text-muted border small"> Baseline </span>
         </div>
       </div>
     </a>
@@ -152,7 +160,7 @@
 </div>
 
 <!-- Follow-ups -->
-<div class="custom-card mt-4">
+<div class="custom-card mb-4">
   <div class="p-3 border-bottom">
     <div class="d-flex justify-content-between align-items-center">
       <div>
@@ -164,9 +172,11 @@
         <p class="text-muted small mb-0">Leads that need your attention.</p>
       </div>
 
+      {% with m=manual_follow_ups|length c=campaign_follow_ups|length %}
       <span class="badge bg-light text-dark border">
-        {{ manual_follow_ups|length|add:campaign_follow_ups|length }}
+        {{ m|add:c }}
       </span>
+      {% endwith %}
     </div>
   </div>
 
@@ -438,15 +448,15 @@
           <td>
             {% if lead.potential == "high" %}
 
-            <span class="status-pill pill-high"> 🔥 High </span>
+            <span class="status-pill pill-high"> High </span>
 
             {% elif lead.potential == "medium" %}
 
-            <span class="status-pill pill-medium"> 🟡 Medium </span>
+            <span class="status-pill pill-medium"> Medium </span>
 
             {% else %}
 
-            <span class="status-pill pill-low"> ⚪ Low </span>
+            <span class="status-pill pill-low"> Low </span>
 
             {% endif %}
           </td>
@@ -517,7 +527,7 @@
               Try adjusting your search terms or discover new businesses.
             </p>
 
-            <a href="/discover/" class="btn btn-brand btn-sm">
+            <a href="{% url 'discover' %}" class="btn btn-brand btn-sm">
               <i class="bi bi-search me-1"></i>
               Find Leads
             </a>
@@ -529,5 +539,32 @@
     </table>
   </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const fileInput = document.getElementById("leadsFileInput");
+    const importBtn = document.getElementById("importBtn");
+    const importSpinner = document.getElementById("importSpinner");
+    const importText = document.getElementById("importText");
+    const importIcon = document.getElementById("importIcon");
+    const importForm = document.getElementById("importLeadsForm");
+
+    if (fileInput && importForm) {
+        fileInput.addEventListener("change", function () {
+            if (this.files && this.files.length > 0) {
+                if (importBtn) {
+                    importBtn.classList.add("disabled");
+                    importBtn.setAttribute("aria-disabled", "true");
+                }
+                if (importIcon) importIcon.classList.add("d-none");
+                if (importSpinner) importSpinner.classList.remove("d-none");
+                if (importText) importText.textContent = "Importing...";
+                importForm.submit();
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

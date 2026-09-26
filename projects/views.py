@@ -3,6 +3,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from leads.models import Lead
 from .models import Client, Project
 from django.contrib.auth.decorators import login_required
+from decimal import Decimal, InvalidOperation
+
 
 @login_required
 def convert_lead_to_client(request, lead_id):
@@ -36,6 +38,7 @@ def convert_lead_to_client(request, lead_id):
         client_id=client.id,
     )
 
+
 @login_required
 def client_list(request):
     clients = (
@@ -49,6 +52,66 @@ def client_list(request):
         "projects/client_list.html",
         {"clients": clients},
     )
+
+
+@login_required
+def client_create(request):
+    if request.method == "POST":
+        business_name = request.POST.get(
+            "business_name",
+            "",
+        ).strip()
+
+        name = request.POST.get(
+            "name",
+            "",
+        ).strip()
+
+        phone = request.POST.get(
+            "phone",
+            "",
+        ).strip()
+
+        email = request.POST.get(
+            "email",
+            "",
+        ).strip()
+
+        notes = request.POST.get(
+            "notes",
+            "",
+        ).strip()
+
+        if not business_name:
+            return render(
+                request,
+                "projects/client_create.html",
+                {
+                    "error": "Business name is required.",
+                    "form_data": request.POST,
+                },
+            )
+
+        client = Client.objects.create(
+            user=request.user,
+            lead=None,
+            name=name,
+            business_name=business_name,
+            phone=phone,
+            email=email,
+            notes=notes,
+        )
+
+        return redirect(
+            "client_detail",
+            client_id=client.id,
+        )
+
+    return render(
+        request,
+        "projects/client_create.html",
+    )
+
 
 @login_required
 def client_detail(request, client_id):
@@ -69,6 +132,7 @@ def client_detail(request, client_id):
         },
     )
 
+
 @login_required
 def project_create(request, client_id):
     client = get_object_or_404(
@@ -78,6 +142,18 @@ def project_create(request, client_id):
     )
 
     if request.method == "POST":
+
+        try:
+            price = Decimal(request.POST.get("price") or "0")
+            amount_paid = Decimal(request.POST.get("amount_paid") or "0")
+        except InvalidOperation:
+            price = Decimal("0")
+            amount_paid = Decimal("0")
+
+        price = max(price, Decimal("0"))
+        amount_paid = max(amount_paid, Decimal("0"))
+
+
         Project.objects.create(
             client=client,
             project_name=request.POST.get(
@@ -138,6 +214,7 @@ def project_create(request, client_id):
         },
     )
 
+
 @login_required
 def project_detail(request, project_id):
     project = get_object_or_404(
@@ -152,6 +229,7 @@ def project_detail(request, project_id):
         {"project": project},
     )
 
+
 @login_required
 def project_update(request, project_id):
     project = get_object_or_404(
@@ -161,6 +239,17 @@ def project_update(request, project_id):
     )
 
     if request.method == "POST":
+
+        try:
+            price = Decimal(request.POST.get("price") or "0")
+            amount_paid = Decimal(request.POST.get("amount_paid") or "0")
+        except InvalidOperation:
+            price = Decimal("0")
+            amount_paid = Decimal("0")
+
+        price = max(price, Decimal("0"))
+        amount_paid = max(amount_paid, Decimal("0"))
+
         project.project_name = request.POST.get(
             "project_name",
             project.project_name,
@@ -188,8 +277,8 @@ def project_update(request, project_id):
             request.POST.get("price") or 0
         )
 
-        project.amount_paid = (
-            request.POST.get("amount_paid") or 0
+        project.amount_paid = max(
+            0 , float(request.POST.get("amount_paid") or 0)
         )
 
         project.domain_name = request.POST.get(

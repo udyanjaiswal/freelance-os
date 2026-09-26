@@ -12,7 +12,7 @@
             Search for local businesses in any city to discover potential clients who need websites, redesigns, or digital services.
         </p>
     </div>
-    <a href="/" class="btn btn-outline-subtle btn-sm">
+    <a href="{% url 'home' %}" class="btn btn-outline-subtle btn-sm">
         <i class="bi bi-arrow-left me-1"></i> Back to Leads
     </a>
 </div>
@@ -109,16 +109,38 @@
                 </div>
             </form>
 
-            <!-- Friendly Loading Notice -->
+            <!-- Friendly Loading & Skeleton Notice -->
             <div id="loading-section" class="d-none mt-3 p-3 bg-light rounded border">
-                <div class="d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center gap-3 mb-3">
                     <div class="spinner-border text-dark" role="status" style="width: 1.75rem; height: 1.75rem;">
-                        <span class="visually-hidden">Loading...</span>
+                        <span class="visually-hidden">Searching...</span>
                     </div>
                     <div>
-                        <div class="fw-semibold text-dark mb-1">Searching for businesses...</div>
+                        <div class="fw-semibold text-dark mb-1">Searching and scoring business listings...</div>
                         <div class="text-muted small">
-                            Querying OpenStreetMap and Foursquare places, merging duplicates, and scoring website opportunities. This takes about 5–10 seconds.
+                            Searching local directory records, merging duplicates, and scoring website opportunities. This takes about 5–10 seconds.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Skeleton preview -->
+                <div class="row g-2 mb-2">
+                    <div class="col-4">
+                        <div class="p-2 bg-white rounded border text-center">
+                            <span class="skeleton-box skeleton-text w-50"></span>
+                            <span class="skeleton-box w-75" style="height: 1.5rem;"></span>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2 bg-white rounded border text-center">
+                            <span class="skeleton-box skeleton-text w-50"></span>
+                            <span class="skeleton-box w-75" style="height: 1.5rem;"></span>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2 bg-white rounded border text-center">
+                            <span class="skeleton-box skeleton-text w-50"></span>
+                            <span class="skeleton-box w-75" style="height: 1.5rem;"></span>
                         </div>
                     </div>
                 </div>
@@ -172,14 +194,14 @@
                 <span class="badge bg-success-subtle text-success border border-success-subtle mb-1">Search Completed</span>
                 <h4 class="fw-bold mb-0 text-dark">Results for "{{ search }}"</h4>
             </div>
-            <a href="/" class="btn btn-brand btn-sm">
+            <a href="{% url 'home' %}" class="btn btn-brand btn-sm">
                 View All Leads in Pipeline →
             </a>
         </div>
 
         <div class="row g-3 text-center my-1">
             <div class="col-4">
-                <div class="p-3 bg-light rounded border">
+                <div class="p-3 bg-light rounded border h-100">
                     <span class="text-muted small text-uppercase d-block mb-1">Total Found</span>
                     <span class="fs-2 fw-bold text-dark">{{ result.found }}</span>
                     <span class="d-block text-muted small">businesses</span>
@@ -187,7 +209,7 @@
             </div>
 
             <div class="col-4">
-                <div class="p-3 rounded border" style="background-color: #f0fdf4; border-color: #bbf7d0 !important;">
+                <div class="p-3 rounded border h-100" style="background-color: #f0fdf4; border-color: #bbf7d0 !important;">
                     <span class="text-success small text-uppercase d-block mb-1">New Leads Saved</span>
                     <span class="fs-2 fw-bold text-success">+{{ result.new }}</span>
                     <span class="d-block text-success small">added to pipeline</span>
@@ -195,7 +217,7 @@
             </div>
 
             <div class="col-4">
-                <div class="p-3 bg-light rounded border">
+                <div class="p-3 bg-light rounded border h-100">
                     <span class="text-muted small text-uppercase d-block mb-1">Duplicates Merged</span>
                     <span class="fs-2 fw-bold text-secondary">{{ result.duplicates }}</span>
                     <span class="d-block text-muted small">updated</span>

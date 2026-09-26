@@ -1,4 +1,4 @@
-﻿{% load static %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -55,6 +55,12 @@
                     <h2>Sign in</h2>
                     <p>Enter your account credentials to continue.</p>
                 </div>
+
+                {% if rate_limit_error %}
+                <div class="error-box">
+                    <p style="margin: 0; color: #b91c1c; font-weight: 500;">{{ rate_limit_error }}</p>
+                </div>
+                {% endif %}
 
                 {% if form.non_field_errors %}
                 <div class="error-box">

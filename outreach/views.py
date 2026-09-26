@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
+from django.views.decorators.http import require_POST
 
 from leads.models import Lead
 
@@ -209,6 +210,7 @@ def campaign_detail(request, campaign_id):
     )
 
 @login_required
+@require_POST
 def generate_campaign_messages(request, campaign_id):
 
     campaign = get_object_or_404(

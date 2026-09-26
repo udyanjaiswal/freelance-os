@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from django.contrib import messages
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
+from django.views.decorators.http import require_POST
 
 from .models import Lead
 from outreach.models import Outreach
@@ -21,6 +22,22 @@ import io
 
 from openpyxl import load_workbook
 from django.contrib.auth.decorators import login_required
+
+
+def sanitize_formula_value(val):
+    """
+    Neutralizes spreadsheet formula injection (CWE-1236).
+    If a string starts with =, +, -, @, tab, or carriage return,
+    prefix with a single quote to force spreadsheet programs
+    to treat the cell strictly as literal text.
+    """
+    if val is None:
+        return ""
+    str_val = str(val)
+    if str_val and str_val[0] in ("=", "+", "-", "@", "\t", "\r"):
+        return "'" + str_val
+    return str_val
+
 
 @login_required
 def lead_detail(request, lead_id):
@@ -61,6 +78,7 @@ def lead_detail(request, lead_id):
     )
 
 @login_required
+@require_POST
 def update_status(request, lead_id):
     lead = get_object_or_404(
         Lead,
@@ -68,99 +86,96 @@ def update_status(request, lead_id):
         user=request.user,
     )
 
-    if request.method == "POST":
-        status = request.POST.get("status")
+    status = request.POST.get("status")
 
-        valid_statuses = [
-            choice[0]
-            for choice in Lead.STATUS_CHOICES
-        ]
+    valid_statuses = [
+        choice[0]
+        for choice in Lead.STATUS_CHOICES
+    ]
 
-        if status in valid_statuses:
-            lead.status = status
-            lead.save(
-                update_fields=[
-                    "status",
-                    "updated_at",
-                ]
-            )
-        else:
-            # B14: surface invalid status to user
-            messages.error(
-                request,
-                f"'{status}' is not a valid status. "
-                "Please choose from the available options."
-            )
+    if status in valid_statuses:
+        lead.status = status
+        lead.save(
+            update_fields=[
+                "status",
+                "updated_at",
+            ]
+        )
+    else:
+        # B14: surface invalid status to user
+        messages.error(
+            request,
+            f"'{status}' is not a valid status. "
+            "Please choose from the available options."
+        )
 
     return redirect("lead_detail", lead_id=lead.id)
 
 @login_required
+@require_POST
 def add_outreach(request, lead_id):
     lead = get_object_or_404(Lead, id=lead_id,
         user=request.user,)
 
-    if request.method == "POST":
-        method = request.POST.get("method", "").strip()
-        follow_up_raw = request.POST.get("follow_up_date", "").strip()
+    method = request.POST.get("method", "").strip()
+    follow_up_raw = request.POST.get("follow_up_date", "").strip()
 
-        # B6: validate outreach method
-        valid_methods = [
-            choice[0] for choice in Outreach.METHOD_CHOICES
-        ]
-        if method not in valid_methods:
+    # B6: validate outreach method
+    valid_methods = [
+        choice[0] for choice in Outreach.METHOD_CHOICES
+    ]
+    if method not in valid_methods:
+        messages.error(
+            request,
+            f"'{method}' is not a valid outreach method. "
+            f"Choose from: {', '.join(valid_methods)}."
+        )
+        return redirect("lead_detail", lead_id=lead.id)
+
+    # V4: follow-up date must be today or in the future
+    follow_up_date = follow_up_raw or None
+    if follow_up_raw:
+        try:
+            parsed_date = date.fromisoformat(follow_up_raw)
+            if parsed_date < date.today():
+                messages.error(
+                    request,
+                    "Follow-up date cannot be in the past."
+                )
+                return redirect("lead_detail", lead_id=lead.id)
+            follow_up_date = follow_up_raw
+        except ValueError:
             messages.error(
                 request,
-                f"'{method}' is not a valid outreach method. "
-                f"Choose from: {', '.join(valid_methods)}."
+                "Invalid follow-up date format."
             )
             return redirect("lead_detail", lead_id=lead.id)
 
-        # V4: follow-up date must be today or in the future
-        follow_up_date = follow_up_raw or None
-        if follow_up_raw:
-            try:
-                parsed_date = date.fromisoformat(follow_up_raw)
-                if parsed_date < date.today():
-                    messages.error(
-                        request,
-                        "Follow-up date cannot be in the past."
-                    )
-                    return redirect("lead_detail", lead_id=lead.id)
-                follow_up_date = follow_up_raw
-            except ValueError:
-                messages.error(
-                    request,
-                    "Invalid follow-up date format."
-                )
-                return redirect("lead_detail", lead_id=lead.id)
+    Outreach.objects.create(
+        lead=lead,
+        method=method,
+        message=request.POST.get("message", ""),
+        outcome=request.POST.get("outcome", ""),
+        follow_up_date=follow_up_date,
+    )
 
-        Outreach.objects.create(
-            lead=lead,
-            method=method,
-            message=request.POST.get("message", ""),
-            outcome=request.POST.get("outcome", ""),
-            follow_up_date=follow_up_date,
+    # First outreach automatically moves
+    # a new lead to contacted.
+    if lead.status == "new":
+        lead.status = "contacted"
+        lead.save(
+            update_fields=[
+                "status",
+                "updated_at",
+            ]
         )
-
-        # First outreach automatically moves
-        # a new lead to contacted.
-        if lead.status == "new":
-            lead.status = "contacted"
-            lead.save(
-                update_fields=[
-                    "status",
-                    "updated_at",
-                ]
-            )
 
     return redirect("lead_detail", lead_id=lead.id)
 
 
 @login_required
+@require_POST
 def import_leads(request):
-    if request.method != "POST":
-        return redirect("home")
-
     uploaded_file = request.FILES.get("csv_file")
 
     if not uploaded_file:
@@ -312,6 +327,9 @@ def import_leads(request):
                         value = str(value).strip()
 
                     if value:
+                        # Neutralize spreadsheet formula injection characters
+                        if value[0] in ("=", "+", "-", "@", "\t", "\r"):
+                            value = "'" + value
                         # D3: skip invalid website URLs silently
                         if actual_field == "website" and not is_valid_url(value):
                             continue
@@ -437,7 +455,7 @@ def export_leads(request):
                 row=row_number,
                 column=column
             )
-            cell.value = getattr(lead, field, "") or ""
+            cell.value = sanitize_formula_value(getattr(lead, field, "") or "")
             cell.alignment = Alignment(
                 vertical="top",
                 wrap_text=True

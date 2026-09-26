@@ -19,6 +19,10 @@ def is_safe_public_url(url):
         if not hostname:
             return False
 
+        # Port restriction: only allow standard web ports to prevent internal/external port scanning
+        if parsed.port not in (None, 80, 443):
+            return False
+
         # Disallow explicit localhost or metadata hostnames
         if hostname.lower() in ("localhost", "metadata.google.internal"):
             return False
@@ -35,13 +39,14 @@ def is_safe_public_url(url):
             # Block private networks (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16)
             # Block loopback (127.0.0.0/8, ::1)
             # Block link-local / cloud metadata (169.254.0.0/16, fe80::/10)
-            # Block reserved and multicast
+            # Block reserved, multicast, and unspecified (0.0.0.0, ::)
             if (
                 ip.is_private
                 or ip.is_loopback
                 or ip.is_link_local
                 or ip.is_reserved
                 or ip.is_multicast
+                or ip.is_unspecified
             ):
                 return False
 

@@ -2,6 +2,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
+from django.views.decorators.http import require_POST
 
 from leads.models import Lead
 from .models import Client, Project
@@ -10,15 +11,13 @@ from decimal import Decimal, InvalidOperation
 
 
 @login_required
+@require_POST
 def convert_lead_to_client(request, lead_id):
     lead = get_object_or_404(
         Lead,
         id=lead_id,
         user=request.user,
     )
-
-    if request.method != "POST":
-        return redirect("lead_detail", lead_id=lead.id)
 
     if hasattr(lead, "client"):
         return redirect("client_detail", client_id=lead.client.id)
@@ -260,6 +259,7 @@ def project_detail(request, project_id):
 
 
 @login_required
+@require_POST
 def project_update(request, project_id):
     # B1: verify ownership and existence
     project = get_object_or_404(
@@ -267,9 +267,6 @@ def project_update(request, project_id):
         id=project_id,
         client__user=request.user,
     )
-
-    if request.method != "POST":
-        return redirect("project_detail", project_id=project.id)
 
     project_name = request.POST.get("project_name", "").strip() or project.project_name
     service = request.POST.get("service", "").strip() or project.service

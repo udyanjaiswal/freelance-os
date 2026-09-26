@@ -1,4 +1,12 @@
+import re
 import requests
+
+
+def sanitize_osm_input(val):
+    """Sanitize inputs to prevent Overpass QL grammar/regex injection."""
+    if not val:
+        return ""
+    return re.sub(r'["\\;\[\]{}|\r\n\t]', '', str(val)).strip()
 
 
 OVERPASS_URLS = [
@@ -70,10 +78,13 @@ CATEGORY_TAGS = {
 
 def search_osm(query, city, limit=100):
 
-    query = query.strip().lower()
-    city = city.strip()
+    safe_query = sanitize_osm_input(query).lower()
+    safe_city = sanitize_osm_input(city)
 
-    category_tags = CATEGORY_TAGS.get(query)
+    if not safe_query or not safe_city:
+        return []
+
+    category_tags = CATEGORY_TAGS.get(safe_query)
 
     # Known category
     if category_tags:
@@ -95,13 +106,13 @@ def search_osm(query, city, limit=100):
         # to treat the search as a key=value tag.
         query_body = (
             f'nwr(area.searchArea)'
-            f'[name~"{query}",i];'
+            f'[name~"{safe_query}",i];'
         )
 
     overpass_query = f"""
 [out:json][timeout:90];
 
-area["name"="{city}"]->.searchArea;
+area["name"="{safe_city}"]->.searchArea;
 
 (
     {query_body}

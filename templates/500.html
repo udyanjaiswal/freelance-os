@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Server Error — Freelancer OS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-5">
+    <div class="col-md-7 col-lg-5 text-center">
+        <div class="custom-card p-5">
+            <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1 mb-3 text-dark">Error 500</span>
+            <h1 class="display-6 fw-normal mb-2">Something went wrong</h1>
+            <p class="text-muted small mb-4">
+                An internal server error occurred while processing your request. Our system has logged the event. Please try again shortly.
+            </p>
+
+            <div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
+                <a href="/app/" class="btn btn-brand btn-sm">
+                    <i class="bi bi-arrow-left me-1"></i> Return to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

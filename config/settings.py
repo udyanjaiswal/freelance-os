@@ -43,25 +43,42 @@ ALLOWED_HOSTS = (
     else ["localhost", "127.0.0.1"]
 )
 
-# ── Security headers ──────────────────────────────────────────────────────────
+# ── Security headers & Cookies ───────────────────────────────────────────────
 # Prevent this site from being framed (clickjacking defence)
 X_FRAME_OPTIONS = "DENY"
 
 # Prevent browsers from MIME-sniffing a response away from the declared content-type
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
-# NOTE: SECURE_BROWSER_XSS_FILTER was removed in Django 4.1 because the
-# X-XSS-Protection header is deprecated and removed from all modern browsers.
-# Real XSS defence: use CSP headers (Content-Security-Policy) at the web-server
-# layer when you deploy (nginx/caddy config — outside Django scope for now).
+# Prevent leaking referrer headers to third-party domains
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
-# NOTE: the flags below require HTTPS. Enable them when you deploy behind TLS.
-# SESSION_COOKIE_SECURE = True
-# CSRF_COOKIE_SECURE = True
-# SECURE_SSL_REDIRECT = True
-# SECURE_HSTS_SECONDS = 31536000
-# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-# SECURE_HSTS_PRELOAD = True
+# Cookie security attributes
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = "Lax"
+
+# ── HTTPS & Transport Security ───────────────────────────────────────────────
+# In production or when ENABLE_HTTPS=True, enforce SSL and strict transport security
+ENABLE_HTTPS = os.getenv("ENABLE_HTTPS", "False" if DEBUG else "True").lower() in ("true", "1", "yes")
+
+if ENABLE_HTTPS:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "31536000"))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# ── Cache Configuration (used for in-process rate limiting) ───────────────────
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "freelancer-os-cache",
+    }
+}
 
 
 

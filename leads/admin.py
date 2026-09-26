@@ -2,7 +2,6 @@ from django.contrib import admin
 from .models import Lead
 
 
-@admin.register(Lead)
 class LeadAdmin(admin.ModelAdmin):
     list_display = (
         'business_name',
@@ -34,4 +33,4 @@ class LeadAdmin(admin.ModelAdmin):
         qs = super().get_queryset(request)
         if request.user.is_superuser:
             return qs
-        return qs.filter(user=request.user)
+        return qs.filter(user=request.user)
